@@ -50,7 +50,9 @@ Route::middleware('auth')->group(function () {
     
     Route::get('/materi', [MateriController::class, 'index'])->name('materi.index');
     Route::get('/materi/{materi}', [MateriController::class, 'show'])->name('materi.show');
-
+    Route::post('/materi', [MateriController::class, 'store'])->name('materi.store');
+    Route::post('/materi/{materi}', [MateriController::class, 'update'])->name('materi.update');
+    
     Route::get('/test', [TestController::class, 'index'])->name('test.index');
     Route::get('/test/{test}', [TestController::class, 'show'])->name('test.show');
 

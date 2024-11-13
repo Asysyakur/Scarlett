@@ -13,7 +13,7 @@ class TestSeeder extends Seeder
      */
     public function run()
     {
-        Test::create(['name' => 'Sample Test 1', 'description' => 'This is a sample test description.', 'link' => 'https://forms.gle/xSPiSo1uh7sK8t4YA']);
-        Test::create(['name' => 'Sample Test 2', 'description' => 'Another example of a test.', 'link' => 'https://forms.gle/xSPiSo1uh7sK8t4YA']);
+        Test::create(['name' => 'Pretest', 'description' => 'Mengukur Kemampuan Awalmu', 'link' => 'https://forms.gle/xSPiSo1uh7sK8t4YA']);
+        Test::create(['name' => 'PostTest', 'description' => 'Mengukur Pengetahuanmu Setelah Pembelajaran', 'link' => 'https://forms.gle/xSPiSo1uh7sK8t4YA']);
     }
 }

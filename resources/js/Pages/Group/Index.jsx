@@ -54,7 +54,7 @@ export default function Group({ auth, users, groups }) {
             <Head title="Kelompok" />
 
             <div className="max-w-7xl mx-auto p-6">
-                <div className="bg-white shadow-lg rounded-lg p-6 mb-8">
+                <div className="bg-white border border-amber-300 shadow-lg rounded-lg p-6 mb-8">
                     <div className="flex flex-col md:flex-row justify-between items-center mb-6">
                         <h3 className="font-semibold text-lg text-gray-700">
                             Total Kelompok : {groups.length}

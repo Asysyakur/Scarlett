@@ -22,7 +22,7 @@ export default function Dashboard() {
                 {/* Main Dashboard Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {/* Card Capaian Pembelajaran */}
-                    <div className="overflow-hidden bg-white shadow-lg rounded-lg transform transition hover:scale-105 hover:shadow-lg">
+                    <div className="overflow-hidden border border-amber-300 bg-white shadow-lg rounded-lg transform transition hover:scale-105 hover:shadow-lg">
                         <div className="p-6 text-gray-800">
                             <h3 className="text-xl font-semibold text-red-700">
                                 Capaian Pembelajaran
@@ -37,7 +37,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Card Tujuan Pembelajaran */}
-                    <div className="overflow-hidden bg-white shadow-lg rounded-lg transform transition hover:scale-105 hover:shadow-lg">
+                    <div className="overflow-hidden border border-amber-300 bg-white shadow-lg rounded-lg transform transition hover:scale-105 hover:shadow-lg">
                         <div className="p-6 text-gray-800">
                             <h3 className="text-xl font-semibold text-red-700">
                                 Tujuan Pembelajaran
@@ -53,7 +53,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Card Identitas Pembelajaran */}
-                <div className="overflow-hidden bg-white shadow-lg rounded-lg mt-6 transition-transform transform hover:scale-105 hover:shadow-lg">
+                <div className="overflow-hidden border border-amber-300 bg-white shadow-lg rounded-lg mt-6 transition-transform transform hover:scale-105 hover:shadow-lg">
                     <div className="p-6 text-gray-800">
                         <h3 className="text-xl font-semibold text-red-700">
                             Identitas Pembelajaran
