@@ -5,7 +5,7 @@ import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
 import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
 
-// Your navigation items array
+// Base navigation items
 const baseNavigation = [
     { name: "Dashboard", href: "/dashboard" },
     { name: "Kelompok", href: "/kelompok" },
@@ -16,6 +16,7 @@ const baseNavigation = [
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+    const isAdmin = user.role_id === 1;  // Adjust based on your role structure
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
@@ -27,14 +28,12 @@ export default function AuthenticatedLayout({ header, children }) {
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
                                 <Link href="/">
-                                    {/* <ApplicationLogo className="block h-9 w-auto fill-current text-white" /> */}
                                     <h2 className="text-white font-bold text-xl">
                                         Scarlett
                                     </h2>
                                 </Link>
                             </div>
 
-                            {/* Render nav links */}
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 {baseNavigation.map((item, index) => (
                                     <NavLink
@@ -46,10 +45,23 @@ export default function AuthenticatedLayout({ header, children }) {
                                         {item.name}
                                     </NavLink>
                                 ))}
+
+                                {/* Render "Monitoring" link if user is admin */}
+                                {isAdmin && (
+                                    <NavLink
+                                        href="/monitoring"
+                                        active={window.location.pathname === "/monitoring"}
+                                        className="text-white hover:text-yellow-500"
+                                    >
+                                        Monitoring
+                                    </NavLink>
+                                )}
                             </div>
                         </div>
 
+                        {/* User profile dropdown and mobile nav button */}
                         <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                            {/* User profile dropdown */}
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
@@ -95,6 +107,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
+                        {/* Mobile nav button */}
                         <div className="-me-2 flex items-center sm:hidden">
                             <button
                                 onClick={() =>
@@ -156,6 +169,17 @@ export default function AuthenticatedLayout({ header, children }) {
                                 {item.name}
                             </ResponsiveNavLink>
                         ))}
+
+                        {/* Render "Mentoring" link for admin in mobile nav */}
+                        {isAdmin && (
+                            <ResponsiveNavLink
+                                href="/mentoring"
+                                active={route().current("/mentoring")}
+                                className="text-red-600 hover:text-yellow-500"
+                            >
+                                Mentoring
+                            </ResponsiveNavLink>
+                        )}
                     </div>
                 </div>
             </nav>

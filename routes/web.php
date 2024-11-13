@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\GroupsController;
 use App\Http\Controllers\MateriController;
+use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\TestController;
+use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,10 +24,23 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::middleware(['auth', AdminMiddleware::class])->group(function () {
+    Route::get('/monitoring', function () {
+        return Inertia::render('Monitoring/Index');
+    })->name('monitoring');
+    
+    // Route::get('/monitoring/monitoring-test', [MonitoringController::class, 'monitoringTest'])->name('monitoring.monitoringTest');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/diagram', function () {
         return Inertia::render('DrawIo/Index');
     })->name('diagram');
+
+    Route::get('/presensi', function () {
+        return Inertia::render('Presensi/Index');
+    })->name('presensi');
+    Route::post('/presensi', [ProgressController::class, 'storePresensi'])->name('presensi.store');
 
     Route::get('/kelompok', [GroupsController::class, 'index'])->name('group.index');
     Route::post('/kelompok/storeMany', [GroupsController::class, 'storeMany'])->name('group.storeMany');

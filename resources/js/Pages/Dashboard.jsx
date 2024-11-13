@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 
 export default function Dashboard() {
     return (
@@ -8,17 +8,16 @@ export default function Dashboard() {
 
             <div className="max-w-7xl mx-auto p-6 space-y-6">
                 {/* Banner for Attendance Reminder */}
-                <div className="mb-6 p-6 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg">
-                    <a
-                        href="#"
-                        onClick={() => alert("Redirecting to attendance...")}
-                        className="flex items-center justify-between"
-                    >
+                <Link
+                    href="/presensi"
+                    className="flex mb-6 p-6 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg"
+                >
+                    <div className="flex items-center justify-between">
                         <span className="text-lg font-semibold text-red-700">
-                            Jangan Lupa untuk mengisi presensi hari ini
+                            Klik disini untuk melakukan presensi
                         </span>
-                    </a>
-                </div>
+                    </div>
+                </Link>
 
                 {/* Main Dashboard Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

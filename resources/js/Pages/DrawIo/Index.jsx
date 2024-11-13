@@ -20,7 +20,7 @@ function DrawioEmbed({ auth, groups }) {
                                 className="transform transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-50 hover:shadow-xl"
                             >
                                 <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                                    Grup {group.name}
+                                    {group.name}
                                 </h2>
                                 <iframe
                                     src={`${group.drawio_link}`}

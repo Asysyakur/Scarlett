@@ -43,6 +43,16 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function isAdmin()
+    {
+        return $this->role_id === 1; // Replace 'role' with the actual attribute or logic you use to define an admin
+    }
+
+    public function progress()
+    {
+        return $this->hasOne(UserProgress::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *
