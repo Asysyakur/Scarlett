@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import React, { useState } from "react";
 
 export default function Show({ materi }) {
@@ -17,10 +17,18 @@ export default function Show({ materi }) {
         return null; // jika tidak valid, kembalikan null
     }
 
+    const handlePageChange = () => {
+        if (materi.id === 1) {
+            window.location.href = '/materi/1/drag-and-drop';
+        } else {
+            window.location.href = `/materi/${materi.id + 1}`;
+        }
+    };
+
     return (
         <AuthenticatedLayout>
             <Head title={materi.title} />
-            <div className="max-w-7xl mx-auto  my-6 p-6 border border-amber-300 bg-white rounded-lg shadow-md">
+            <div className="max-w-7xl mx-auto my-6 p-6 border border-amber-300 bg-white rounded-lg shadow-md">
                 <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
                     {materi.title}
                 </h1>
@@ -122,7 +130,7 @@ export default function Show({ materi }) {
                 {/* Add a button below the tabs */}
                 <div className="mt-6 flex justify-center">
                     <button
-                        onClick={() => alert("Button clicked!")}
+                        onClick={handlePageChange}
                         className="px-8 py-3 text-white bg-amber-500 rounded-md hover:bg-amber-600 transition duration-200 ease-in-out"
                     >
                         Selanjutnya

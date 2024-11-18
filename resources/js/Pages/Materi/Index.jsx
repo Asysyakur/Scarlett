@@ -122,6 +122,17 @@ export default function Index({ materis, auth }) {
         const handleOutsideClick = (e) => {
             if (modalRef.current && !modalRef.current.contains(e.target)) {
                 setIsModalOpen(false);
+                setIsEditing(false);
+                setSelectedMateri(null);
+                setNewMateri({
+                    title: "",
+                    description: "",
+                    content: "",
+                    link: "",
+                    video: "",
+                    image: null,
+                    file: null,
+                });
             }
         };
 

@@ -6,12 +6,22 @@ function DrawioEmbed({ auth, groups }) {
     // Check if user is admin (role_id === 1)
     const isAdmin = auth.user.role_id === 1;
 
+    // Find the group that the authenticated user belongs to
+    const group = groups.find((group) =>
+        group.users.find((user) => user.id === auth.user.id)
+    );
+
     return (
         <AuthenticatedLayout header={<>Buat Diagram</>}>
             <Head title="Test" />
 
             <div className="max-w-7xl mx-auto p-6">
-                {isAdmin ? (
+                {groups.length === 0 ? (
+                    // Show message if no groups are available
+                    <div className="text-center text-xl text-red-500">
+                        Tidak ada Kelompok yang tersedia.
+                    </div>
+                ) : isAdmin ? (
                     // Admin view: Display all groups in a 3-column grid
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 text-center">
                         {groups.map((group) => (
@@ -32,11 +42,11 @@ function DrawioEmbed({ auth, groups }) {
                         ))}
                     </div>
                 ) : (
-                    // User view: Display only their group's diagram
-                    <div className="flex justify-center items-center w-full h-screen bg-gray-100">
-                        {groups.length > 0 && (
+                    // User view: Display the diagram for the user's group
+                    <div className="flex justify-center items-center w-full h-[70vh] bg-gray-100">
+                        {group && (
                             <iframe
-                                src={`https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&layers=1&nav=1&title=Untitled%20Diagram.drawio#U${encodeURIComponent(groups[0].drawio_link)}`}
+                                src={`${group.drawio_link}`}
                                 title="User's Draw.io Diagram"
                                 className="w-full h-full"
                                 style={{ border: "none" }}

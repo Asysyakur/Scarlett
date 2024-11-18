@@ -97,4 +97,11 @@ class MateriController extends Controller
         $materi->save();
 
     }
+
+    public function dragAndDrop(Materi $materi)
+    {
+        return Inertia::render('Materi/DragAndDrop', [
+            'materi' => $materi,
+        ]);
+    }
 }

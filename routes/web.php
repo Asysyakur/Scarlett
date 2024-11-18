@@ -1,5 +1,7 @@
 <?php
 
+use App\Events\MonitoringChannel;
+use App\Events\testingEvent;
 use App\Http\Controllers\GroupsController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\MonitoringController;
@@ -28,8 +30,21 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/monitoring', function () {
         return Inertia::render('Monitoring/Index');
     })->name('monitoring');
-    
+
     // Route::get('/monitoring/monitoring-test', [MonitoringController::class, 'monitoringTest'])->name('monitoring.monitoringTest');
+});
+Route::get('tests', function () {
+    return Inertia::render('TestPage');
+})->name('test');
+
+Route::get('guru', function () {
+    return Inertia::render('GuruPage');
+})->name('guru');
+
+Route::post('/broadcast-video', function () {
+    $videoData = request()->videoData;
+    broadcast(new testingEvent($videoData, 1));
+    return response()->json(['message' => 'Video broadcasted successfully!']);
 });
 
 Route::middleware('auth')->group(function () {
@@ -47,18 +62,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/kelompok/randomize', [GroupsController::class, 'randomize'])->name('group.randomize');
     Route::post('/kelompok/{group}/update-drawio-link', [GroupsController::class, 'updateDrawioLink'])->name('group.updateDrawioLink');
     Route::get('/diagram', [GroupsController::class, 'indexDiagram'])->name('diagram');
-    
+
     Route::get('/materi', [MateriController::class, 'index'])->name('materi.index');
     Route::get('/materi/{materi}', [MateriController::class, 'show'])->name('materi.show');
     Route::post('/materi', [MateriController::class, 'store'])->name('materi.store');
     Route::post('/materi/{materi}', [MateriController::class, 'update'])->name('materi.update');
-    
+    Route::get('/materi/{materi}/drag-and-drop', [MateriController::class, 'dragAndDrop'])->name('materi.dragAndDrop');
+
     Route::get('/test', [TestController::class, 'index'])->name('test.index');
     Route::get('/test/{test}', [TestController::class, 'show'])->name('test.show');
+    Route::post('/test/capture', [TestController::class, 'capture'])->name('test.capture');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

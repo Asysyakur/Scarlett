@@ -1,7 +1,13 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
+import { useEffect, useState } from "react";
 
-export default function Dashboard() {
+export default function Dashboard({auth}) {
+    const [test, setTest] = useState([]);
+    
+    useEffect(() => {
+    }, []);
+
     return (
         <AuthenticatedLayout header={<>Dashboard</>}>
             <Head title="Dashboard" />
@@ -14,10 +20,15 @@ export default function Dashboard() {
                 >
                     <div className="flex items-center justify-between">
                         <span className="text-lg font-semibold text-red-700">
-                            Klik disini untuk melakukan presensi
+                            Klik disini untuk melakukan presensi {test.stream}
                         </span>
                     </div>
                 </Link>
+                <video 
+                    src={test.stream} 
+                    controls 
+                    className="w-full h-auto"
+                />
 
                 {/* Main Dashboard Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

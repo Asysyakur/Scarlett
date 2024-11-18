@@ -3,7 +3,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\testingEvent;
 use App\Models\Test;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class TestController extends Controller
@@ -11,6 +13,7 @@ class TestController extends Controller
     public function index()
     {
         $tests = Test::all(); // Fetch all tests from the database
+        
         return Inertia::render('Test/Index', [
             'tests' => $tests,
         ]);
@@ -22,5 +25,14 @@ class TestController extends Controller
         return Inertia::render('Test/Show', [
             'test' => $test,
         ]);
+    }
+
+    public function capture(Request $request)
+    {
+        $stream = $request->getContent(); // Capture the incoming request data
+        // Broadcast the test data
+        event(new testingEvent($stream,1));
+
+        return 'Test data captured and broadcasted successfully!';
     }
 }
