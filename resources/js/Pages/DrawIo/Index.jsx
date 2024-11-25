@@ -1,9 +1,40 @@
+import { useActivity } from "@/Contexts/ActivityContext";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
-import React from "react";
+import React, { useEffect } from "react";
 
 function DrawioEmbed({ auth, groups }) {
     // Check if user is admin (role_id === 1)
+    const { startActivity, stopActivity, currentPath, changePath } =
+        useActivity();
+
+    useEffect(() => {
+        // Manually update the path when the component mounts
+        changePath(`/diagram`);
+
+        // Start activity when page is loaded or path changes
+        startActivity();
+
+        // Event listener to stop/resume activity on tab visibility change
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopActivity();
+            } else {
+                startActivity();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+            stopActivity(); // Ensure activity is stopped when component unmounts
+        };
+    }, [currentPath]); // Depend on functions and manually updating path
+
     const isAdmin = auth.user.role_id === 1;
 
     // Find the group that the authenticated user belongs to

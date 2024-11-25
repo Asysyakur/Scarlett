@@ -1,252 +1,315 @@
-import React, { useState, useEffect } from "react";
-import { DndContext } from "@dnd-kit/core";
-import Draggable from "./components/Draggable";
-import Droppable from "./components/Droppable";
+import React, { useState, useEffect, useRef } from "react";
+import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 
-// Function to shuffle an array
-const shuffleArray = (array) => {
-  let shuffledArray = [...array];
-  for (let i = shuffledArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffledArray[i], shuffledArray[j]] = [
-      shuffledArray[j],
-      shuffledArray[i],
-    ];
-  }
-  return shuffledArray;
+const GameBoard = ({ tables, attributes, relations }) => {
+    const [tableData, setTableData] = useState(
+        tables.map((table) => ({
+            ...table,
+            ref: useRef(null),
+            attributes: table.attributes.map((attr) => ({
+                ...attr,
+                isPrimaryKey: false,
+                isForeignKey: false,
+            })),
+        })) // Menambahkan ref dan status primary key/foreign key
+    );
+    const [relationsData, setRelationsData] = useState(relations);
+
+    const attributesPool = attributes.map((attr) => ({
+        id: attr.id,
+        label: attr.label,
+    }));
+
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+
+        if (over) {
+            const attribute = attributesPool.find(
+                (attr) => attr.id === active.id
+            );
+
+            if (attribute) {
+                setTableData((prevTables) =>
+                    prevTables.map((table) => {
+                        if (table.id === parseInt(over.id)) {
+                            if (!table.attributes.includes(attribute.label)) {
+                                return {
+                                    ...table,
+                                    attributes: [
+                                        ...table.attributes,
+                                        { label: attribute.label, isPrimaryKey: false, isForeignKey: false },
+                                    ],
+                                };
+                            }
+                        }
+                        return table;
+                    })
+                );
+            }
+        }
+    };
+
+    const DragItem = ({ id, label }) => {
+        const { attributes, listeners, setNodeRef, transform } = useDraggable({
+            id,
+        });
+
+        const style = {
+            transform: `translate3d(${transform?.x || 0}px, ${
+                transform?.y || 0
+            }px, 0)`,
+        };
+
+        return (
+            <div
+                ref={setNodeRef}
+                style={style}
+                {...attributes}
+                {...listeners}
+                className="bg-green-300 px-4 py-2 rounded shadow cursor-pointer mb-2"
+            >
+                {label}
+            </div>
+        );
+    };
+
+    const DroppableTable = ({ table }) => {
+        const { setNodeRef } = useDroppable({ id: table.id });
+
+        const handleReset = () => {
+            setTableData((prevTables) =>
+                prevTables.map((t) => {
+                    if (t.id === table.id) {
+                        return { ...t, attributes: [] }; // Reset attributes tabel
+                    }
+                    return t;
+                })
+            );
+        };
+
+        const togglePrimaryKey = (attributeLabel) => {
+            setTableData((prevTables) =>
+                prevTables.map((t) => {
+                    if (t.id === table.id) {
+                        return {
+                            ...t,
+                            attributes: t.attributes.map((attr) =>
+                                attr.label === attributeLabel
+                                    ? { ...attr, isPrimaryKey: !attr.isPrimaryKey }
+                                    : attr
+                            ),
+                        };
+                    }
+                    return t;
+                })
+            );
+        };
+
+        const toggleForeignKey = (attributeLabel) => {
+            setTableData((prevTables) =>
+                prevTables.map((t) => {
+                    if (t.id === table.id) {
+                        return {
+                            ...t,
+                            attributes: t.attributes.map((attr) =>
+                                attr.label === attributeLabel
+                                    ? { ...attr, isForeignKey: !attr.isForeignKey }
+                                    : attr
+                            ),
+                        };
+                    }
+                    return t;
+                })
+            );
+        };
+
+        useEffect(() => {
+            if (table.ref?.current) {
+                setNodeRef(table.ref.current); // Menetapkan ref ke elemen tabel
+            }
+        }, [setNodeRef, table.ref]);
+
+        return (
+            <div
+                ref={table.ref}
+                className="border p-4 rounded-lg bg-gray-100 shadow-md min-h-[100px]"
+            >
+                <div className="flex justify-between items-center">
+                    <h3 className="font-bold mb-2">{table.name}</h3>
+                    <button
+                        onClick={handleReset}
+                        className="mt-2 bg-red-500 text-white px-4 py-2 rounded"
+                    >
+                        Reset
+                    </button>
+                </div>
+                <ul>
+                    {table.attributes.map((attr, index) => (
+                        <li
+                            key={index}
+                            className="bg-blue-100 px-2 py-1 rounded my-1"
+                        >
+                            {attr.label}
+                            <div className="flex gap-2 mt-2">
+                                <button
+                                    onClick={() => togglePrimaryKey(attr.label)}
+                                    className={`${
+                                        attr.isPrimaryKey
+                                            ? "bg-blue-500"
+                                            : "bg-blue-300"
+                                    } text-white px-2 py-1 rounded`}
+                                >
+                                    PK
+                                </button>
+                                <button
+                                    onClick={() => toggleForeignKey(attr.label)}
+                                    className={`${
+                                        attr.isForeignKey
+                                            ? "bg-yellow-500"
+                                            : "bg-yellow-300"
+                                    } text-white px-2 py-1 rounded`}
+                                >
+                                    FK
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        );
+    };
+
+    const Connections = ({ relations, tables }) => {
+        const [lines, setLines] = useState([]);
+
+        useEffect(() => {
+            const updatedLines = relations.map((relation) => {
+                const fromTable = tables.find(
+                    (table) => table.id === relation.from
+                );
+                const toTable = tables.find(
+                    (table) => table.id === relation.to
+                );
+
+                if (fromTable?.ref?.current && toTable?.ref?.current) {
+                    const fromRect =
+                        fromTable.ref.current.getBoundingClientRect();
+                    const toRect = toTable.ref.current.getBoundingClientRect();
+
+                    let x1, y1, x2, y2;
+
+                    if (relation.to < relation.from) {
+                        x1 = fromRect.left;
+                        y1 = fromRect.top + fromRect.height / 2;
+                        x2 = toRect.right;
+                        y2 = toRect.top + toRect.height / 2;
+                    } else {
+                        x1 = fromRect.right;
+                        y1 = fromRect.top + fromRect.height / 2;
+                        x2 = toRect.left;
+                        y2 = toRect.top + toRect.height / 2;
+                    }
+
+                    const middleX = (x1 + x2) / 2;
+                    const offset = 20 * relations.indexOf(relation);
+
+                    return {
+                        path: `M ${x1},${y1 + offset} H ${middleX} V ${y2 + offset} H ${x2}`,
+                        labelX: middleX,
+                        labelY: y2 + offset,
+                        type: relation.type,
+                    };
+                }
+                return null;
+            });
+            setLines(updatedLines.filter((line) => line !== null));
+        }, [relations, tables]);
+
+        return (
+            <svg className="absolute inset-0 pointer-events-none z-50 w-full h-full">
+                {lines.map((line, index) => (
+                    <React.Fragment key={index}>
+                        <path
+                            d={line.path}
+                            fill="none"
+                            stroke="black"
+                            strokeWidth="2"
+                            markerEnd="url(#arrowhead)"
+                        />
+                        <text
+                            x={line.labelX}
+                            y={line.labelY - 5}
+                            fontSize="12"
+                            fill="black"
+                            textAnchor="middle"
+                        >
+                            {line.type}
+                        </text>
+                    </React.Fragment>
+                ))}
+                <defs>
+                    <marker
+                        id="arrowhead"
+                        markerWidth="10"
+                        markerHeight="7"
+                        refX="10"
+                        refY="3.5"
+                        orient="auto"
+                    >
+                        <polygon points="0 0, 10 3.5, 0 7" fill="black" />
+                    </marker>
+                </defs>
+            </svg>
+        );
+    };
+
+    return (
+        <AuthenticatedLayout header={<>Drag and drop</>}>
+            <Head title="Drag and Drop" />
+            <div className="max-w-7xl mx-auto p-6">
+                <DndContext onDragEnd={handleDragEnd}>
+                    <div className="flex flex-col gap-4">
+                        <div
+                            className={`grid gap-24 ${
+                                tableData.length === 1
+                                    ? "grid-cols-1"
+                                    : tableData.length === 2
+                                    ? "grid-cols-2"
+                                    : tableData.length === 3
+                                    ? "grid-cols-3"
+                                    : tableData.length === 4
+                                    ? "grid-cols-4"
+                                    : "grid-cols-5"
+                            }`}
+                        >
+                            {tableData.map((table) => (
+                                <DroppableTable key={table.id} table={table} />
+                            ))}
+                        </div>
+
+                        <div className="w-full flex justify-center">
+                            <div className="w-4/12 justify-center border p-4 bg-gray-50 rounded shadow">
+                                <h3 className="font-bold mb-2">
+                                    Available Attributes
+                                </h3>
+                                {attributesPool.map((attr) => (
+                                    <DragItem
+                                        key={attr.id}
+                                        id={attr.id}
+                                        label={attr.label}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <Connections relations={relationsData} tables={tableData} />
+                </DndContext>
+            </div>
+        </AuthenticatedLayout>
+    );
 };
 
-const initialChallenges = [
-  {
-    id: 1,
-    title: "Tantangan 1: Susun Kode Pengulangan",
-    description:
-      "Susun kode berikut untuk mencetak angka dari 1 hingga 5 menggunakan loop.",
-    initialCodeBlocks: [
-      {
-        id: 1,
-        text: "",
-        correctCodePieceId: 4,
-        placeholder: "Define function",
-      },
-      {
-        id: 2,
-        text: "",
-        correctCodePieceId: 1,
-        placeholder: "Start loop",
-      },
-      {
-        id: 3,
-        text: "",
-        correctCodePieceId: 2,
-        placeholder: "Print number",
-      },
-      {
-        id: 4,
-        text: "",
-        correctCodePieceId: 3,
-        placeholder: "Close loop and function",
-      },
-    ],
-    initialCodePieces: [
-      { id: 1, text: "for (let i = 1; i <= 5; i++) {" },
-      { id: 2, text: "  console.log(i);" },
-      { id: 3, text: "}" },
-      { id: 4, text: "function printNumbers() {" },
-    ],
-  },
-];
-
-export default function DragAndDrop() {
-  const [xp, setXp] = useState(parseInt(localStorage.getItem("xp"), 10) || 0);
-  const [hp, setHp] = useState(parseInt(localStorage.getItem("hp"), 10) || 100);
-  const [currentChallenge, setCurrentChallenge] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
-  const [showHint, setShowHint] = useState(false);
-
-  const { initialCodeBlocks, initialCodePieces, title, description } =
-    initialChallenges[currentChallenge];
-
-  const [codeBlocks, setCodeBlocks] = useState([]);
-  const [codePieces, setCodePieces] = useState([]);
-  const [matched, setMatched] = useState({});
-  const [droppedPositions, setDroppedPositions] = useState({});
-
-  // Initialize code blocks and pieces
-  useEffect(() => {
-    setCodeBlocks(initialCodeBlocks);
-    setCodePieces(shuffleArray(initialCodePieces));
-    setMatched({});
-    setDroppedPositions({});
-  }, [currentChallenge]);
-
-  // Handle drag end event
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-
-    if (over) {
-      const codeBlockId = over.id;
-      const codePieceId = active.id;
-
-      const selectedCodePiece = codePieces.find(
-        (piece) => piece.id === codePieceId
-      );
-
-      setCodeBlocks((prevBlocks) =>
-        prevBlocks.map((block) =>
-          block.id === codeBlockId
-            ? { ...block, text: selectedCodePiece.text }
-            : block
-        )
-      );
-
-      // Store the drop position for persistence
-      setDroppedPositions((prev) => ({
-        ...prev,
-        [codeBlockId]: { x: over.rect.left, y: over.rect.top },
-      }));
-
-      setMatched((prev) => ({ ...prev, [codeBlockId]: codePieceId }));
-    }
-  };
-
-  // Validate if the code is correct
-  const validateCode = () => {
-    return codeBlocks.every(
-      (block) => matched[block.id] === block.correctCodePieceId
-    );
-  };
-
-  // Handle code checking
-  const handleCheckCode = () => {
-    if (validateCode()) {
-      const newXp = xp + 100;
-      setXp(newXp);
-      setModalMessage(`Selamat! Anda mendapatkan 100 XP. Total XP: ${newXp}`);
-      localStorage.setItem("xp", newXp);
-    } else {
-      const newHp = hp - 20;
-      setHp(newHp);
-      setModalMessage(`Salah! HP Anda berkurang 20. Sisa HP: ${newHp}`);
-      localStorage.setItem("hp", newHp);
-      resetGame();
-    }
-    setShowModal(true);
-  };
-
-  // Reset game state
-  const resetGame = () => {
-    setCodeBlocks(initialCodeBlocks);
-    setCodePieces(shuffleArray(initialCodePieces));
-    setMatched({});
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    if (validateCode()) {
-      if (currentChallenge >= initialChallenges.length - 1) {
-        console.log("All challenges completed!");
-      } else {
-        setCurrentChallenge((prev) => prev + 1); // Proceed to next challenge
-      }
-    }
-  };
-
-  const handleHint = () => setShowHint(true);
-
-  return (
-    <AuthenticatedLayout header={<>Materi</>}>
-      <Head title="Materi" />
-      <DndContext onDragEnd={handleDragEnd}>
-        <div className="p-6 bg-gradient-to-b from-blue-300 to-blue-500 min-h-screen text-white">
-          <h1 className="text-4xl font-bold text-center">Drag and Drop Kode</h1>
-
-          <div className="mt-4 text-center">
-            <p className="text-2xl font-semibold">
-              <strong>XP:</strong> {xp} | <strong>HP:</strong> {hp}
-            </p>
-          </div>
-
-          <div className="mt-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">{title}</h2>
-            <p className="text-lg mb-4">{description}</p>
-            <button
-              onClick={handleHint}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-            >
-              Tampilkan Petunjuk
-            </button>
-            {showHint && (
-              <div className="mt-4 p-4 bg-gray-800 rounded-lg">
-                <p className="text-lg">
-                  Petunjuk: Pertimbangkan urutan kode dengan logika yang benar.
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-between mt-8">
-            <div className="w-1/2 pr-4">
-              <h2 className="text-xl mb-4">Susun Kode Berikut:</h2>
-              <div className="space-y-4">
-                {codeBlocks.map((block) => (
-                  <Droppable key={block.id} id={block.id} position={droppedPositions[block.id]}>
-                    <div className="bg-white p-4 text-blue-900 rounded-lg shadow-md text-lg font-mono transition-transform hover:scale-105 hover:shadow-lg">
-                      {block.text || block.placeholder}
-                    </div>
-                  </Droppable>
-                ))}
-              </div>
-            </div>
-
-            <div className="w-1/2 pl-4">
-              <h2 className="text-xl mb-4">Potongan Kode</h2>
-              <div className="space-y-4">
-                {codePieces.map(
-                  (piece) =>
-                    !Object.values(matched).includes(piece.id) && (
-                      <Draggable key={piece.id} id={piece.id}>
-                        <div className="bg-yellow-400 p-4 text-gray-800 rounded-lg shadow-md text-lg font-mono transition-transform hover:scale-105 hover:shadow-lg">
-                          {piece.text}
-                        </div>
-                      </Draggable>
-                    )
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 flex justify-center">
-            <button
-              onClick={handleCheckCode}
-              className="px-6 py-3 bg-green-500 text-white rounded-full shadow-lg text-lg hover:bg-green-600 transition-all"
-            >
-              Periksa Kode
-            </button>
-          </div>
-        </div>
-
-        {/* Modal */}
-        {showModal && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white text-black p-8 rounded-lg shadow-lg w-1/3">
-              <h2 className="text-xl font-bold mb-4">Hasil</h2>
-              <p className="text-lg">{modalMessage}</p>
-              <div className="mt-4 flex justify-between">
-                <button
-                  onClick={closeModal}
-                  className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                >
-                  Tutup
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </DndContext>
-    </AuthenticatedLayout>
-  );
-}
+export default GameBoard;

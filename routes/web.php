@@ -2,6 +2,7 @@
 
 use App\Events\MonitoringChannel;
 use App\Events\testingEvent;
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\GroupsController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\MonitoringController;
@@ -30,6 +31,9 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/monitoring', function () {
         return Inertia::render('Monitoring/Index');
     })->name('monitoring');
+
+    Route::get('/monitoring/aktivitas-siswa', [ActivityController::class, 'index'])->name('monitoring.activity');
+    Route::get('/monitoring/aktivitas-siswa/{userId}', [ActivityController::class, 'show'])->name('monitoring.detail');
 
     // Route::get('/monitoring/monitoring-test', [MonitoringController::class, 'monitoringTest'])->name('monitoring.monitoringTest');
 });
@@ -72,6 +76,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/test', [TestController::class, 'index'])->name('test.index');
     Route::get('/test/{test}', [TestController::class, 'show'])->name('test.show');
     Route::post('/test/capture', [TestController::class, 'capture'])->name('test.capture');
+
+    Route::post('/activities/start', [ActivityController::class, 'startActivity']);
+    Route::post('/activities/stop', [ActivityController::class, 'stopActivity']);
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

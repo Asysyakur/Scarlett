@@ -1,9 +1,39 @@
+import { useActivity } from "@/Contexts/ActivityContext";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage } from "@inertiajs/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function Show({ materi }) {
     const [activeTab, setActiveTab] = useState("content"); // Default tab is "content"
+    const { startActivity, stopActivity, currentPath, changePath } =
+        useActivity();
+
+    useEffect(() => {
+        // Manually update the path when the component mounts
+        changePath(`/materi/${materi.id}`);
+
+        // Start activity when page is loaded or path changes
+        startActivity();
+
+        // Event listener to stop/resume activity on tab visibility change
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopActivity();
+            } else {
+                startActivity();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+            stopActivity(); // Ensure activity is stopped when component unmounts
+        };
+    }, [currentPath]); // Depend on functions and manually updating path
 
     function convertToEmbedURL(youtubeUrl) {
         const regex =
@@ -19,7 +49,7 @@ export default function Show({ materi }) {
 
     const handlePageChange = () => {
         if (materi.id === 1) {
-            window.location.href = '/materi/1/drag-and-drop';
+            window.location.href = "/materi/1/drag-and-drop";
         } else {
             window.location.href = `/materi/${materi.id + 1}`;
         }

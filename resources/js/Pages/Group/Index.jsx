@@ -1,6 +1,7 @@
+import { useActivity } from "@/Contexts/ActivityContext";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router, useForm } from "@inertiajs/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Group({ auth, users, groups }) {
     const { post } = useForm();
@@ -8,6 +9,39 @@ export default function Group({ auth, users, groups }) {
     const [showModal, setShowModal] = useState(false);
     const [selectedGroupId, setSelectedGroupId] = useState(null);
     const [drawioLink, setDrawioLink] = useState("");
+    const {
+        startActivity,
+        stopActivity,
+        currentPath,
+        changePath,
+    } = useActivity();
+
+    useEffect(() => {
+        // Manually update the path when the component mounts
+        changePath("/kelompok");
+
+        // Start activity when page is loaded or path changes
+        startActivity();
+
+        // Event listener to stop/resume activity on tab visibility change
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopActivity();
+            }else{
+                startActivity();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+            stopActivity(); // Ensure activity is stopped when component unmounts
+        };
+    }, [currentPath]); // Depend on functions and manually updating path
 
     const handleGroupCountChange = (event) => {
         setGroupCount(event.target.value);
@@ -88,7 +122,6 @@ export default function Group({ auth, users, groups }) {
                                 </button>
                             </form>
 
-
                             <button
                                 onClick={handleRandomizeGroups}
                                 className="w-full md:w-auto px-4 py-2 bg-gradient-to-br from-amber-400 to-amber-500 text-white rounded-lg hover:bg-amber-600 transition duration-200"
@@ -132,7 +165,9 @@ export default function Group({ auth, users, groups }) {
                                 {auth?.user?.role_id === 1 && (
                                     <div className="mt-4">
                                         <button
-                                            onClick={() => handleShowModal(group.id)}
+                                            onClick={() =>
+                                                handleShowModal(group.id)
+                                            }
                                             className="px-4 py-2 bg-gradient-to-br from-amber-400 to-amber-500 text-white rounded-lg hover:bg-amber-600 transition duration-200"
                                         >
                                             Input Draw.io Link

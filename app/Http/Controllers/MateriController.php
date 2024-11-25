@@ -100,8 +100,15 @@ class MateriController extends Controller
 
     public function dragAndDrop(Materi $materi)
     {
+        $tables = $materi->tables;
+        $attributes = $materi->attributes;
+        $relations = $materi->relations;
+
         return Inertia::render('Materi/DragAndDrop', [
             'materi' => $materi,
+            'tables' => $tables,
+            'attributes' => $attributes,
+            'relations' => $relations,
         ]);
     }
 }

@@ -1,10 +1,40 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Head, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import PretestIlu from "./assets/PreTestIlus.svg";
 import PostestIlu from "./assets/PostTestIlus.svg";
+import { useActivity } from "@/Contexts/ActivityContext";
 
 export default function Index({ tests }) {
+    const { startActivity, stopActivity, currentPath, changePath } =
+        useActivity();
+
+    useEffect(() => {
+        // Manually update the path when the component mounts
+        changePath("/test");
+
+        // Start activity when page is loaded or path changes
+        startActivity();
+
+        // Event listener to stop/resume activity on tab visibility change
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopActivity();
+            } else {
+                startActivity();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+            stopActivity(); // Ensure activity is stopped when component unmounts
+        };
+    }, [currentPath]); // Depend on functions and manually updating path
     return (
         <AuthenticatedLayout header={<>Semua Test</>}>
             <Head title="Test" />

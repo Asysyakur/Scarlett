@@ -53,6 +53,11 @@ class User extends Authenticatable
         return $this->hasOne(UserProgress::class);
     }
 
+    public function activities()
+    {
+        return $this->hasMany(Activity::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

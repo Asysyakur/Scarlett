@@ -16,7 +16,7 @@ const baseNavigation = [
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
-    const isAdmin = user.role_id === 1;  // Adjust based on your role structure
+    const isAdmin = user.role_id === 1; // Adjust based on your role structure
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
@@ -24,8 +24,8 @@ export default function AuthenticatedLayout({ header, children }) {
         <div className="min-h-screen bg-white">
             <nav className="sticky top-0 z-50 border-b border-gray-100 bg-red-700 shadow-md">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
+                    <div className="flex h-16 justify-between w-full">
+                        <div className="flex w-full justify-between">
                             <div className="flex shrink-0 items-center">
                                 <Link href="/">
                                     <h2 className="text-white font-bold text-xl">
@@ -34,12 +34,15 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </Link>
                             </div>
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                            <div className="hidden space-x-8 sm:-my-px sm:flex">
                                 {baseNavigation.map((item, index) => (
                                     <NavLink
                                         key={index}
                                         href={item.href}
-                                        active={window.location.pathname === item.href}
+                                        active={
+                                            window.location.pathname ===
+                                            item.href
+                                        }
                                         className="text-white hover:text-yellow-500"
                                     >
                                         {item.name}
@@ -50,60 +53,62 @@ export default function AuthenticatedLayout({ header, children }) {
                                 {isAdmin && (
                                     <NavLink
                                         href="/monitoring"
-                                        active={window.location.pathname === "/monitoring"}
+                                        active={
+                                            window.location.pathname ===
+                                            "/monitoring"
+                                        }
                                         className="text-white hover:text-yellow-500"
                                     >
                                         Monitoring
                                     </NavLink>
                                 )}
                             </div>
-                        </div>
-
-                        {/* User profile dropdown and mobile nav button */}
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
-                            {/* User profile dropdown */}
-                            <div className="relative ms-3">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                {user.name}
-                                                <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
+                            {/* User profile dropdown and mobile nav button */}
+                            <div className="hidden sm:flex sm:items-center">
+                                {/* User profile dropdown */}
+                                <div className="relative ms-3">
+                                    <Dropdown>
+                                        <Dropdown.Trigger>
+                                            <span className="inline-flex rounded-md">
+                                                <button
+                                                    type="button"
+                                                    className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
                                                 >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
+                                                    {user.name}
+                                                    <svg
+                                                        className="-me-0.5 ms-2 h-4 w-4"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 20 20"
+                                                        fill="currentColor"
+                                                    >
+                                                        <path
+                                                            fillRule="evenodd"
+                                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                            clipRule="evenodd"
+                                                        />
+                                                    </svg>
+                                                </button>
+                                            </span>
+                                        </Dropdown.Trigger>
 
-                                    <Dropdown.Content>
-                                        <Dropdown.Link
-                                            href={route("profile.edit")}
-                                            className="text-red-600"
-                                        >
-                                            Profile
-                                        </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route("logout")}
-                                            method="post"
-                                            as="button"
-                                            className="text-red-600"
-                                        >
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
+                                        <Dropdown.Content>
+                                            <Dropdown.Link
+                                                href={route("profile.edit")}
+                                                className="text-red-600"
+                                            >
+                                                Profile
+                                            </Dropdown.Link>
+                                            <Dropdown.Link
+                                                href={route("logout")}
+                                                method="post"
+                                                as="button"
+                                                className="text-red-600"
+                                            >
+                                                Log Out
+                                            </Dropdown.Link>
+                                        </Dropdown.Content>
+                                    </Dropdown>
+                                </div>
                             </div>
                         </div>
 
@@ -173,11 +178,11 @@ export default function AuthenticatedLayout({ header, children }) {
                         {/* Render "Mentoring" link for admin in mobile nav */}
                         {isAdmin && (
                             <ResponsiveNavLink
-                                href="/mentoring"
-                                active={route().current("/mentoring")}
+                                href="/monitoring"
+                                active={route().current("/monitoring")}
                                 className="text-red-600 hover:text-yellow-500"
                             >
-                                Mentoring
+                                Monitoring
                             </ResponsiveNavLink>
                         )}
                     </div>

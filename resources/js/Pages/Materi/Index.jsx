@@ -3,6 +3,7 @@ import { Head, Link } from "@inertiajs/react";
 import React, { useEffect, useRef, useState } from "react";
 import IluMateriAwal from "./assets/MateriAwal.svg";
 import IluMateriAdvance from "./assets/MateriAdvance.svg";
+import { useActivity } from "@/Contexts/ActivityContext";
 
 export default function Index({ materis, auth }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,6 +18,35 @@ export default function Index({ materis, auth }) {
         image: null,
         file: null,
     });
+    const { startActivity, stopActivity, currentPath, changePath } =
+        useActivity();
+
+    useEffect(() => {
+        // Manually update the path when the component mounts
+        changePath("/materi");
+
+        // Start activity when page is loaded or path changes
+        startActivity();
+
+        // Event listener to stop/resume activity on tab visibility change
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopActivity();
+            } else {
+                startActivity();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+            stopActivity(); // Ensure activity is stopped when component unmounts
+        };
+    }, [currentPath]); // Depend on functions and manually updating path
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -294,10 +324,7 @@ export default function Index({ materis, auth }) {
                 {/* Container for the grid layout */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-center">
                     {materis.map((materi) => (
-                        <div
-                            key={materi.id}
-                            className="relative"
-                        >
+                        <div key={materi.id} className="relative">
                             <Link
                                 href={`/materi/${materi.id}`}
                                 className="transform flex flex-col md:mx-24 mx-12 transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl"

@@ -1,12 +1,35 @@
+import { useActivity } from "@/Contexts/ActivityContext";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-export default function Dashboard({auth}) {
-    const [test, setTest] = useState([]);
-    
+export default function Dashboard({ auth }) {
+    const { startActivity, stopActivity, currentPath, changePath } =
+        useActivity();
+
     useEffect(() => {
-    }, []);
+        // Manually update the path when the component mounts
+        changePath("/dashboard");
+
+        // Start activity when page is loaded or path changes
+        startActivity();
+
+        // Event listener to stop/resume activity on tab visibility change
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopActivity();
+            }else{
+                startActivity();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            stopActivity(); // Ensure activity is stopped when component unmounts
+        };
+    }, [currentPath]); // Depend on functions and manually updating path
 
     return (
         <AuthenticatedLayout header={<>Dashboard</>}>
@@ -20,15 +43,10 @@ export default function Dashboard({auth}) {
                 >
                     <div className="flex items-center justify-between">
                         <span className="text-lg font-semibold text-red-700">
-                            Klik disini untuk melakukan presensi {test.stream}
+                            Klik disini untuk melakukan presensi
                         </span>
                     </div>
                 </Link>
-                <video 
-                    src={test.stream} 
-                    controls 
-                    className="w-full h-auto"
-                />
 
                 {/* Main Dashboard Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -40,9 +58,7 @@ export default function Dashboard({auth}) {
                             </h3>
                             <p className="mt-4 text-gray-600">
                                 Capaian Pembelajaran (CP) menunjukkan tujuan
-                                atau kompetensi yang harus dicapai, sementara
-                                Tingkat Pencapaian (TP) menggambarkan sejauh
-                                mana siswa telah mencapai tujuan tersebut.
+                                atau kompetensi yang harus dicapai.
                             </p>
                         </div>
                     </div>
@@ -55,9 +71,7 @@ export default function Dashboard({auth}) {
                             </h3>
                             <p className="mt-4 text-gray-600">
                                 Tujuan Pembelajaran adalah untuk menetapkan
-                                hasil yang ingin dicapai oleh siswa setelah
-                                mengikuti proses pembelajaran. Ini membantu
-                                mengarahkan fokus pembelajaran.
+                                hasil yang ingin dicapai oleh siswa.
                             </p>
                         </div>
                     </div>
@@ -72,14 +86,7 @@ export default function Dashboard({auth}) {
                         <p className="mt-4 text-gray-600">
                             Identitas Pembelajaran mencakup tujuan, metode, dan
                             hasil yang ingin dicapai dalam suatu proses
-                            pembelajaran. Siswa akan mempelajari cara mendesain
-                            dan menggambarkan hubungan antar entitas dalam basis
-                            data menggunakan ERD.
-                        </p>
-                        <p className="mt-2 text-gray-600">
-                            Tujuan dari pembelajaran ini adalah agar siswa
-                            memahami dasar-dasar sistem basis data dan bagaimana
-                            mendesain struktur data yang efektif.
+                            pembelajaran.
                         </p>
                     </div>
                 </div>

@@ -18,4 +18,20 @@ class Materi extends Model
         'file',
         'link',
     ];
+
+    public function attributes()
+    {
+        return $this->hasMany(Atribut::class);
+    }
+
+    public function tables()
+    {
+        return $this->hasMany(Table::class);
+    }
+
+    public function relations()
+    {
+        return $this->hasMany(Relasi::class);
+    }
+    
 }

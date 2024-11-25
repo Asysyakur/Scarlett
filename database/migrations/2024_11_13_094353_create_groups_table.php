@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('drawio_link')->nullable()->change();
+            $table->string('drawio_link')->nullable();
             $table->timestamps();
         });
 
