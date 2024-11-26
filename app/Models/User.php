@@ -33,6 +33,31 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    public function groups()
+    {
+        return $this->belongsToMany(Groups::class, 'group_user', 'user_id', 'group_id');
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function isAdmin()
+    {
+        return $this->role_id === 1; // Replace 'role' with the actual attribute or logic you use to define an admin
+    }
+
+    public function progress()
+    {
+        return $this->hasOne(UserProgress::class);
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(Activity::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *
