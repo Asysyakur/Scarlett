@@ -1,6 +1,7 @@
 <?php
 
 use App\Events\MonitoringChannel;
+use App\Events\ScreenSharingStarted;
 use App\Events\testingEvent;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\GroupsController;
@@ -35,6 +36,10 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/monitoring/aktivitas-siswa', [ActivityController::class, 'index'])->name('monitoring.activity');
     Route::get('/monitoring/aktivitas-siswa/{userId}', [ActivityController::class, 'show'])->name('monitoring.detail');
 
+    Route::get('/monitoring/monitoring-test', function () {
+        return Inertia::render('Monitoring/MonitoringTest/Index');
+    })->name('monitoring.monitoringTest');
+
     // Route::get('/monitoring/monitoring-test', [MonitoringController::class, 'monitoringTest'])->name('monitoring.monitoringTest');
 });
 Route::get('tests', function () {
@@ -55,6 +60,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/diagram', function () {
         return Inertia::render('DrawIo/Index');
     })->name('diagram');
+
+    Route::post('/start-screen-share', [TestController::class, 'startScreenShare']);
 
     Route::get('/presensi', function () {
         return Inertia::render('Presensi/Index');
