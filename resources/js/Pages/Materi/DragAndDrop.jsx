@@ -8,7 +8,7 @@ const GameBoard = ({ tables, attributes, relations }) => {
         tables.map((table) => ({
             ...table,
             ref: useRef(null),
-            attributes: table.attributes.map((attr) => ({
+            attributes: table.attributes?.map((attr) => ({
                 ...attr,
                 isPrimaryKey: false,
                 isForeignKey: false,

@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import Peer from "peerjs";
 import axios from "axios";
+import WarnigIlu from "./assets/Warning.svg";
 
 function StudentScreenShare({ auth, test }) {
     const [isSharing, setIsSharing] = useState(false);
@@ -16,34 +17,35 @@ function StudentScreenShare({ auth, test }) {
                 audio: false,
             });
 
-            // Menampilkan preview stream di video element
+            // Tambahkan event listener untuk menghentikan screen share saat stream berakhir
+            stream.getTracks().forEach((track) => {
+                track.onended = () => {
+                    console.log("Screen sharing ended by user.");
+                    stopScreenShare();
+                };
+            });
+
             if (streamRef.current) {
                 streamRef.current.srcObject = stream;
             }
 
-            const peer = new Peer(); // Inisialisasi Peer untuk siswa
+            const peer = new Peer();
 
             peer.on("open", async (peerId) => {
                 console.log("Student Peer ID:", peerId);
 
-                // Kirim Peer ID ke server
                 await axios.post("/start-screen-share", {
                     studentId: auth.user.id,
+                    name: auth.user.name,
                     peerId,
                 });
 
-                // Mendengarkan panggilan dari guru
                 peer.on("call", (call) => {
                     console.log("Received call from:", call.peer);
 
-                    // Make sure the local media stream is available
                     if (streamRef.current) {
                         const localStream = streamRef.current.srcObject;
-
-                        // Answer the call with the local stream (screen share or webcam)
                         call.answer(localStream);
-
-                        // Display the remote stream (the other peer's media stream)
                         call.on("stream", function (remoteStream) {
                             const remoteVideo =
                                 document.getElementById("remote-video");
@@ -51,10 +53,9 @@ function StudentScreenShare({ auth, test }) {
                                 remoteVideo.srcObject = remoteStream;
                             }
                         });
-
-                        call.on("error", (err) => {
-                            console.error("Error during call:", err);
-                        });
+                        call.on("error", (err) =>
+                            console.error("Error during call:", err)
+                        );
                     } else {
                         console.log(
                             "No local stream available to answer the call."
@@ -81,37 +82,61 @@ function StudentScreenShare({ auth, test }) {
         }
 
         setIsSharing(false);
+
+        // Kirim notifikasi ke server bahwa screen sharing telah dihentikan
+        axios.post("/stop-screen-share", {
+            studentId: auth.user.id,
+        });
     };
 
     return (
         <AuthenticatedLayout>
             <Head title="Student Screen Share" />
-            <div className="container mx-auto text-center mt-10">
-                <h2 className="text-2xl font-bold mb-4">{test.name}</h2>
+            <div className="max-w-7xl mx-auto p-6 text-center">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                    {test.name}
+                </h2>
+
                 {!isSharing ? (
                     <button
                         onClick={startScreenShare}
-                        className="bg-blue-500 text-white px-6 py-2 rounded-lg"
+                        className="transform transition-all hover:scale-105 bg-gradient-to-br from-amber-400 to-amber-500 text-white rounded-lg hover:bg-amber-600 duration-200 w-full md:w-auto px-6 py-2 mb-8 shadow-md"
                     >
-                        Start Screen Sharing
+                        Mulai Screen Sharing
                     </button>
                 ) : (
                     <button
                         onClick={stopScreenShare}
-                        className="bg-red-500 text-white px-6 py-2 rounded-lg"
+                        className="transform transition-all hover:scale-105 bg-red-700 hover:bg-red-800 text-white px-6 py-2 rounded-lg mb-8 shadow-md"
                     >
-                        Stop Screen Sharing
+                        Berhenti Screen Sharing
                     </button>
                 )}
-                {test.link && (
+
+                {isSharing && test.link && (
                     <iframe
                         src={test.link}
-                        className=" flex w-full h-screen"
+                        className="w-full h-screen rounded-xl border border-amber-300 shadow-lg mt-6"
                         frameBorder="0"
                         allowFullScreen
                     ></iframe>
                 )}
-                <div className="mt-4 hidden">
+
+                {!isSharing && (
+                    <div className="mt-8">
+                        <img
+                            src={WarnigIlu}
+                            alt="Test Illustration"
+                            className="mx-auto max-w-[200px] md:max-w-xs mb-4" // Reduced image size
+                        />
+                        <div className="text-gray-500 italic font-bold text-xl">
+                            Anda harus memulai screen sharing untuk mengakses
+                            test ini.
+                        </div>
+                    </div>
+                )}
+
+                <div className="hidden mt-4">
                     <video
                         ref={streamRef}
                         autoPlay

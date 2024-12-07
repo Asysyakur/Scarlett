@@ -50,18 +50,13 @@ Route::get('guru', function () {
     return Inertia::render('GuruPage');
 })->name('guru');
 
-Route::post('/broadcast-video', function () {
-    $videoData = request()->videoData;
-    broadcast(new testingEvent($videoData, 1));
-    return response()->json(['message' => 'Video broadcasted successfully!']);
-});
-
 Route::middleware('auth')->group(function () {
     Route::get('/diagram', function () {
         return Inertia::render('DrawIo/Index');
     })->name('diagram');
 
     Route::post('/start-screen-share', [TestController::class, 'startScreenShare']);
+    Route::post('/stop-screen-share', [TestController::class, 'stopScreenShare']);
 
     Route::get('/presensi', function () {
         return Inertia::render('Presensi/Index');

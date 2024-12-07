@@ -12,11 +12,13 @@ class TestingEvent implements ShouldBroadcast
 {
     public $studentId;
     public $peerId;
+    public $name;
 
-    public function __construct($studentId, $peerId)
+    public function __construct($studentId, $peerId, $name)
     {
         $this->studentId = $studentId;
         $this->peerId = $peerId;
+        $this->name = $name;
     }
 
     public function broadcastOn(): array
@@ -31,6 +33,7 @@ class TestingEvent implements ShouldBroadcast
         return [
             'studentId' => $this->studentId,
             'peerId' => $this->peerId,
+            'name' => $this->name,
         ];
     }
 

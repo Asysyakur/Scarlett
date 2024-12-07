@@ -27,23 +27,25 @@ class TestController extends Controller
         ]);
     }
 
-    public function capture(Request $request)
-    {
-        $stream = $request->getContent(); // Capture the incoming request data
-        // Broadcast the test data
-        event(new testingEvent($stream, 1));
-
-        return 'Test data captured and broadcasted successfully!';
-    }
-
     public function startScreenShare(Request $request)
     {
         $studentId = $request->input('studentId');
         $peerId = $request->input('peerId'); // Use a unique identifier for the stream
-
+        $name = $request->input('name');
+        
         // Broadcast the event to notify the teacher
-        event(new TestingEvent($studentId, $peerId));
+        event(new TestingEvent($studentId, $peerId, $name));
 
         return response()->json(['message' => 'Screen share started']);
+    }
+
+    public function stopScreenShare(Request $request)
+    {
+        $studentId = $request->input('studentId');
+        
+        // Broadcast event untuk memberitahukan guru bahwa stream dihentikan
+        event(new TestingEvent($studentId, null, null)); // Kirimkan null jika stream dihentikan
+
+        return response()->json(['message' => 'Screen share stopped']);
     }
 }
