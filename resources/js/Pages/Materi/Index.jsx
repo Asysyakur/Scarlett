@@ -4,8 +4,10 @@ import React, { useEffect, useRef, useState } from "react";
 import IluMateriAwal from "./assets/MateriAwal.svg";
 import IluMateriAdvance from "./assets/MateriAdvance.svg";
 import { useActivity } from "@/Contexts/ActivityContext";
+import Swal from "sweetalert2";
 
-export default function Index({ materis, auth }) {
+export default function Index({ materis: initialMateri, auth }) {
+    const [materis, setMateris] = useState(initialMateri || []);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false); // To toggle between add and edit mode
     const [selectedMateri, setSelectedMateri] = useState(null); // To store the materi being edited
@@ -128,6 +130,33 @@ export default function Index({ materis, auth }) {
         });
         setIsModalOpen(true);
     };
+
+    const handleDelete = async (materi) => {
+        Swal.fire({
+            title: "Apakah Anda yakin?",
+            text: "Data ini akan dihapus secara permanen!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#f59e0b",
+            confirmButtonText: "Ya, hapus!",
+            cancelButtonText: "Batal",
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    // Adjusted to delete materi
+                    await axios.delete(`/materi/${materi.id}`);
+                    // Remove the deleted materi from the list (this part depends on your state management)
+                    setMateris((prevMateris) => prevMateris.filter((m) => m.id !== materi.id));
+                    Swal.fire("Berhasil!", "Materi berhasil dihapus.", "success");
+                } catch (error) {
+                    console.error("Error saat menghapus materi: ", error);
+                    Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus materi.", "error");
+                }
+            }
+        });
+    };
+    
 
     const handleCloseModal = () => {
         return () => {
@@ -348,15 +377,23 @@ export default function Index({ materis, auth }) {
 
                             {/* Edit Button */}
                             {auth.user?.role_id === 1 && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Prevent the card link from being clicked
-                                        handleEditClick(materi);
-                                    }}
-                                    className="absolute top-2 right-2 bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600"
-                                >
-                                    Edit
-                                </button>
+                                <div className="absolute top-2 right-2 flex flex-col gap-4">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent the card link from being clicked
+                                            handleEditClick(materi);
+                                        }}
+                                        className="  bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(materi)}
+                                        className="  bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
                             )}
                         </div>
                     ))}

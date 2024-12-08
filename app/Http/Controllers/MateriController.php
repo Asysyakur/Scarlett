@@ -98,6 +98,17 @@ class MateriController extends Controller
 
     }
 
+    public function destroy($id){
+        try {
+            $materi = Materi::findOrFail($id); // Pastikan materi ada
+            $materi->delete(); // Hapus materi dari database
+
+            return response()->json(['message' => 'Materi berhasil dihapus'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Terjadi kesalahan saat menghapus test'], 500);
+        }
+    }
+
     public function dragAndDrop(Materi $materi)
     {
         $tables = $materi->tables;

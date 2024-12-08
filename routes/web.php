@@ -1,12 +1,8 @@
 <?php
 
-use App\Events\MonitoringChannel;
-use App\Events\ScreenSharingStarted;
-use App\Events\testingEvent;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\GroupsController;
 use App\Http\Controllers\MateriController;
-use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\TestController;
@@ -40,15 +36,19 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         return Inertia::render('Monitoring/MonitoringTest/Index');
     })->name('monitoring.monitoringTest');
 
-    // Route::get('/monitoring/monitoring-test', [MonitoringController::class, 'monitoringTest'])->name('monitoring.monitoringTest');
-});
-Route::get('tests', function () {
-    return Inertia::render('TestPage');
-})->name('test');
+    Route::post('/kelompok/storeMany', [GroupsController::class, 'storeMany'])->name('group.storeMany');
+    Route::post('/kelompok/randomize', [GroupsController::class, 'randomize'])->name('group.randomize');
+    Route::post('/kelompok/{group}/update-drawio-link', [GroupsController::class, 'updateDrawioLink'])->name('group.updateDrawioLink');
 
-Route::get('guru', function () {
-    return Inertia::render('GuruPage');
-})->name('guru');
+    Route::post('/test/{test}', [TestController::class, 'edit'])->name('test.edit');
+    Route::post('/test', [TestController::class, 'store'])->name('test.store');
+    Route::delete('/test/{id}', [TestController::class, 'destroy'])->name('test.destroy');
+
+    Route::post('/materi', [MateriController::class, 'store'])->name('materi.store');
+    Route::post('/materi/{materi}', [MateriController::class, 'update'])->name('materi.update');
+    Route::delete('/materi/{materi}', [MateriController::class, 'destroy'])->name('materi.destroy');
+    
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/diagram', function () {
@@ -64,15 +64,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/presensi', [ProgressController::class, 'storePresensi'])->name('presensi.store');
 
     Route::get('/kelompok', [GroupsController::class, 'index'])->name('group.index');
-    Route::post('/kelompok/storeMany', [GroupsController::class, 'storeMany'])->name('group.storeMany');
-    Route::post('/kelompok/randomize', [GroupsController::class, 'randomize'])->name('group.randomize');
-    Route::post('/kelompok/{group}/update-drawio-link', [GroupsController::class, 'updateDrawioLink'])->name('group.updateDrawioLink');
     Route::get('/diagram', [GroupsController::class, 'indexDiagram'])->name('diagram');
 
     Route::get('/materi', [MateriController::class, 'index'])->name('materi.index');
     Route::get('/materi/{materi}', [MateriController::class, 'show'])->name('materi.show');
-    Route::post('/materi', [MateriController::class, 'store'])->name('materi.store');
-    Route::post('/materi/{materi}', [MateriController::class, 'update'])->name('materi.update');
     Route::get('/materi/{materi}/drag-and-drop', [MateriController::class, 'dragAndDrop'])->name('materi.dragAndDrop');
 
     Route::get('/test', [TestController::class, 'index'])->name('test.index');

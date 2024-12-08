@@ -27,12 +27,57 @@ class TestController extends Controller
         ]);
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string',
+            'description' => 'required|string',
+            'link' => 'nullable|url',
+        ]);
+
+        $data = $request->only(['name', 'description', 'link']);
+
+        // Create the new Materi
+        Test::create($data);
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $test = Test::findOrFail($id); // Pastikan test ada
+            $test->delete(); // Hapus test dari database
+
+            return response()->json(['message' => 'Test berhasil dihapus'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Terjadi kesalahan saat menghapus test'], 500);
+        }
+    }
+
+    public function edit(Request $request, $id)
+    {
+        // Validasi input
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+            'link' => 'required|url',
+        ]);
+
+        // Temukan test berdasarkan ID
+        $test = Test::findOrFail($id);
+
+        // Update data test
+        $test->update($validated);
+
+        return response()->json($test);
+    }
+
+
     public function startScreenShare(Request $request)
     {
         $studentId = $request->input('studentId');
         $peerId = $request->input('peerId'); // Use a unique identifier for the stream
         $name = $request->input('name');
-        
+
         // Broadcast the event to notify the teacher
         event(new TestingEvent($studentId, $peerId, $name));
 
@@ -42,7 +87,7 @@ class TestController extends Controller
     public function stopScreenShare(Request $request)
     {
         $studentId = $request->input('studentId');
-        
+
         // Broadcast event untuk memberitahukan guru bahwa stream dihentikan
         event(new TestingEvent($studentId, null, null)); // Kirimkan null jika stream dihentikan
 
