@@ -19,7 +19,8 @@ return new class extends Migration
             $table->string('image')->nullable(); // Image of the materi
             $table->string('video')->nullable(); // Video of the materi
             $table->string('file')->nullable(); // File of the materi
-            $table->string('link')->nullable(); // Link of the materi
+            $table->boolean('dnd')->default(false);
+            $table->boolean('studikasus')->default(false);
             $table->timestamps();
         });
     }

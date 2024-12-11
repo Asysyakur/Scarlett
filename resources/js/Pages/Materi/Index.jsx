@@ -15,13 +15,15 @@ export default function Index({ materis: initialMateri, auth }) {
         title: "",
         description: "",
         content: "",
-        link: "",
         video: "",
         image: null,
         file: null,
+        dnd: false,
+        studikasus: false,
     });
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         // Manually update the path when the component mounts
@@ -58,15 +60,26 @@ export default function Index({ materis: initialMateri, auth }) {
         }));
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+        if (!newMateri.title) newErrors.title = "Title wajib diisi.";
+        if (!newMateri.content) newErrors.content = "Konten wajib diisi.";
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validateForm()) return;
 
         const formData = new FormData();
         formData.append("title", newMateri.title);
         formData.append("description", newMateri.description);
         formData.append("content", newMateri.content || "");
-        formData.append("link", newMateri.link || "");
         formData.append("video", newMateri.video || "");
+        formData.append("dnd", newMateri.dnd ? "true" : "false");
+        formData.append("studikasus", newMateri.studikasus ? "true" : "false");
 
         // Add files if they exist
         if (newMateri.image) {
@@ -90,10 +103,11 @@ export default function Index({ materis: initialMateri, auth }) {
                         title: "",
                         description: "",
                         content: "",
-                        link: "",
                         video: "",
                         image: null,
                         file: null,
+                        dnd: false,
+                        studikasus: false,
                     });
                     window.location.reload();
                 });
@@ -106,10 +120,11 @@ export default function Index({ materis: initialMateri, auth }) {
                     title: "",
                     description: "",
                     content: "",
-                    link: "",
                     video: "",
                     image: null,
                     file: null,
+                    dnd: false,
+                    studikasus: false,
                 });
                 window.location.reload();
             });
@@ -123,10 +138,11 @@ export default function Index({ materis: initialMateri, auth }) {
             title: materi.title,
             description: materi.description,
             content: materi.content,
-            link: materi.link,
             video: materi.video,
             image: null,
             file: null,
+            dnd: materi.dnd,
+            studikasus: materi.studikasus,
         });
         setIsModalOpen(true);
     };
@@ -147,16 +163,25 @@ export default function Index({ materis: initialMateri, auth }) {
                     // Adjusted to delete materi
                     await axios.delete(`/materi/${materi.id}`);
                     // Remove the deleted materi from the list (this part depends on your state management)
-                    setMateris((prevMateris) => prevMateris.filter((m) => m.id !== materi.id));
-                    Swal.fire("Berhasil!", "Materi berhasil dihapus.", "success");
+                    setMateris((prevMateris) =>
+                        prevMateris.filter((m) => m.id !== materi.id)
+                    );
+                    Swal.fire(
+                        "Berhasil!",
+                        "Materi berhasil dihapus.",
+                        "success"
+                    );
                 } catch (error) {
                     console.error("Error saat menghapus materi: ", error);
-                    Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus materi.", "error");
+                    Swal.fire(
+                        "Gagal!",
+                        "Terjadi kesalahan saat menghapus materi.",
+                        "error"
+                    );
                 }
             }
         });
     };
-    
 
     const handleCloseModal = () => {
         return () => {
@@ -242,23 +267,13 @@ export default function Index({ materis: initialMateri, auth }) {
                                         value={newMateri.title}
                                         onChange={handleInputChange}
                                         className="w-full p-2 border border-gray-300 rounded-lg"
-                                        required
                                     />
+                                    {errors.title && (
+                                        <p className="text-red-500">
+                                            {errors.title}
+                                        </p>
+                                    )}
                                 </div>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Link
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="link"
-                                        value={newMateri.link}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border border-gray-300 rounded-lg"
-                                        required
-                                    />
-                                </div>
-
                                 <div className="mb-4">
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Description
@@ -268,7 +283,6 @@ export default function Index({ materis: initialMateri, auth }) {
                                         value={newMateri.description}
                                         onChange={handleInputChange}
                                         className="w-full p-2 border border-gray-300 rounded-lg"
-                                        required
                                     ></textarea>
                                 </div>
                                 <div className="mb-4">
@@ -280,8 +294,12 @@ export default function Index({ materis: initialMateri, auth }) {
                                         value={newMateri.content}
                                         onChange={handleInputChange}
                                         className="w-full p-2 border border-gray-300 rounded-lg"
-                                        required
                                     ></textarea>
+                                    {errors.content && (
+                                        <p className="text-red-500">
+                                            {errors.content}
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* File Uploads */}
@@ -328,6 +346,42 @@ export default function Index({ materis: initialMateri, auth }) {
                                         }
                                         className="w-full p-2 border border-gray-300 rounded-lg"
                                     />
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                                        <input
+                                            type="checkbox"
+                                            name="dnd"
+                                            checked={newMateri.dnd}
+                                            onChange={(e) =>
+                                                setNewMateri((prev) => ({
+                                                    ...prev,
+                                                    dnd: e.target.checked,
+                                                }))
+                                            }
+                                            className="mr-2"
+                                        />
+                                        Drag and Drop
+                                    </label>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                                        <input
+                                            type="checkbox"
+                                            name="studikasus"
+                                            checked={newMateri.studikasus}
+                                            onChange={(e) =>
+                                                setNewMateri((prev) => ({
+                                                    ...prev,
+                                                    studikasus:
+                                                        e.target.checked,
+                                                }))
+                                            }
+                                            className="mr-2"
+                                        />
+                                        Studi Kasus
+                                    </label>
                                 </div>
 
                                 <div className="flex justify-between pb-6">

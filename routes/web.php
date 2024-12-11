@@ -47,7 +47,14 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::post('/materi', [MateriController::class, 'store'])->name('materi.store');
     Route::post('/materi/{materi}', [MateriController::class, 'update'])->name('materi.update');
     Route::delete('/materi/{materi}', [MateriController::class, 'destroy'])->name('materi.destroy');
+
+    Route::post('/materi/{id}/drag-and-drop/attribute', [MateriController::class, 'editAttribute'])->name('dnd.attribute.edit');
+    Route::post('/materi/{id}/drag-and-drop/table', [MateriController::class, 'editTable'])->name('dnd.table.edit');
+    Route::post('/materi/{id}/drag-and-drop/relation', [MateriController::class, 'editRelation'])->name('dnd.relation.edit');
     
+    Route::delete('/materi/drag-and-drop/attribute/{attid}', [MateriController::class, 'destroyAttribute'])->name('dnd.attribute.destroy');
+    Route::delete('/materi/drag-and-drop/table/{attid}', [MateriController::class, 'destroyTable'])->name('dnd.table.destroy');
+    Route::delete('/materi/drag-and-drop/relation/{attid}', [MateriController::class, 'destroyRelation'])->name('dnd.relation.destroy');
 });
 
 Route::middleware('auth')->group(function () {
@@ -69,6 +76,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/materi', [MateriController::class, 'index'])->name('materi.index');
     Route::get('/materi/{materi}', [MateriController::class, 'show'])->name('materi.show');
     Route::get('/materi/{materi}/drag-and-drop', [MateriController::class, 'dragAndDrop'])->name('materi.dragAndDrop');
+    Route::post('/materi/drag-and-drop/save', [MateriController::class, 'dndSave'])->name('materi.dragAndDrop.save');
 
     Route::get('/test', [TestController::class, 'index'])->name('test.index');
     Route::get('/test/{test}', [TestController::class, 'show'])->name('test.show');
