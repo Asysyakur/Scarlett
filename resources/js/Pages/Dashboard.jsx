@@ -105,14 +105,16 @@ export default function Dashboard({ auth, data }) {
 
             <div className="max-w-7xl mx-auto px-6 space-y-6">
                 {/* Banner for Attendance Reminder */}
-                <div className="w-full">
-                    <button
-                        onClick={toggleModal}
-                        className="text-white hover:bg-amber-700 bg-amber-500 transition-all ease-in-out duration-200 font-semibold px-4 py-2 rounded"
-                    >
-                        Edit
-                    </button>
-                </div>
+                {auth?.user.id === 1 && (
+                    <div className="w-full">
+                        <button
+                            onClick={toggleModal}
+                            className="text-white hover:bg-amber-700 bg-amber-500 transition-all ease-in-out duration-200 font-semibold px-4 py-2 rounded"
+                        >
+                            Edit
+                        </button>
+                    </div>
+                )}
                 <Link
                     href="/presensi"
                     className="flex mb-6 p-6 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg"
@@ -227,17 +229,17 @@ export default function Dashboard({ auth, data }) {
 
                             <div className="flex justify-end space-x-4">
                                 <button
-                                    type="button"
-                                    onClick={toggleModal}
-                                    className="text-gray-500 hover:text-gray-700"
-                                >
-                                    Batal
-                                </button>
-                                <button
                                     type="submit"
                                     className="px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600"
                                 >
                                     Simpan
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={toggleModal}
+                                    className="text-gray-500 px-4 py-2 hover:text-gray-700"
+                                >
+                                    Batal
                                 </button>
                             </div>
                         </form>

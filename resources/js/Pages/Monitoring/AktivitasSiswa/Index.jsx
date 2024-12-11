@@ -3,100 +3,81 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
 
 const MonitoringPage = ({ activities }) => {
-    const [currentActivity, setCurrentActivity] = useState(null);
-    const [startTime, setStartTime] = useState(null);
-    const [isTabActive, setIsTabActive] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filteredActivities, setFilteredActivities] = useState([]);
+    const activitiesPerPage = 10;
 
-    // Convert the activities object into an array
-    const activityArray = Object.values(activities);
-
-    const handlePageClick = (page) => {
-        const endTime = new Date();
-        if (currentActivity) {
-            const duration = Math.floor((endTime - startTime) / 1000);
-            updateActivityDuration(currentActivity.page, duration);
-        }
-
-        setCurrentActivity({ page, student });
-        setStartTime(new Date());
-    };
-
-    const updateActivityDuration = (page, additionalDuration) => {
-        setActivities((prev) =>
-            prev.map((activity) =>
-                activity.page === page
-                    ? {
-                          ...activity,
-                          duration: activity.duration + additionalDuration,
-                      }
-                    : activity
-            )
+    useEffect(() => {
+        const filtered = Object.values(activities).filter((activity) =>
+            activity.user_name.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    };
+        setFilteredActivities(filtered);
+    }, [searchQuery, activities]);
 
-    const handleVisibilityChange = () => {
-        if (document.hidden) {
-            setIsTabActive(false);
-            if (currentActivity) {
-                const endTime = new Date();
-                const duration = Math.floor((endTime - startTime) / 1000);
-                updateActivityDuration(currentActivity.page, duration);
-            }
-        } else {
-            setIsTabActive(true);
-            setStartTime(new Date());
+    const indexOfLastActivity = currentPage * activitiesPerPage;
+    const indexOfFirstActivity = indexOfLastActivity - activitiesPerPage;
+    const currentActivities = filteredActivities.slice(
+        indexOfFirstActivity,
+        indexOfLastActivity
+    );
+
+    const totalPages = Math.ceil(filteredActivities.length / activitiesPerPage);
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
         }
     };
 
-    useEffect(() => {
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => {
-            document.removeEventListener(
-                "visibilitychange",
-                handleVisibilityChange
-            );
-        };
-    }, [currentActivity, startTime]);
-
-    useEffect(() => {
-        const handleBeforeUnload = () => {
-            if (currentActivity) {
-                const endTime = new Date();
-                const duration = Math.floor((endTime - startTime) / 1000);
-                updateActivityDuration(currentActivity.page, duration);
-            }
-        };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, [currentActivity, startTime]);
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
 
     return (
         <AuthenticatedLayout header={<>Monitoring Aktivitas Siswa</>}>
             <Head title="Monitoring" />
             <div className="max-w-7xl mx-auto px-6">
+                <div className="flex justify-between items-center">
+                    {/* Button to go back */}
+                    <div>
+                        <Link
+                            href="/monitoring"
+                            className="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600"
+                        >
+                            &larr; Kembali
+                        </Link>
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Cari berdasarkan nama"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="px-4 py-2 border rounded-lg shadow"
+                    />
+                </div>
                 <div className="overflow-x-auto shadow rounded-lg mt-6">
                     <table className="table-auto w-full border-collapse border border-gray-200">
-                        <thead className="bg-gray-100">
+                        <thead className="bg-red-500 text-amber-200">
                             <tr>
-                                <th className="border border-gray-300 px-4 py-2 text-left">
+                                <th className="border border-red-500 px-4 py-2 text-left">
                                     User ID
                                 </th>
-                                <th className="border border-gray-300 px-4 py-2 text-left">
+                                <th className="border border-red-500 px-4 py-2 text-left">
                                     Nama
                                 </th>
-                                <th className="border border-gray-300 px-4 py-2 text-left">
+                                <th className="border border-red-500 px-4 py-2 text-left">
                                     Total Durasi
                                 </th>
-                                <th className="border border-gray-300 px-4 py-2 text-left">
+                                <th className="border border-red-500 px-4 py-2 text-left">
                                     Aksi
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
-                            {activityArray.map((activity, index) => (
+                            {currentActivities.map((activity, index) => (
                                 <tr
                                     key={index}
                                     className={
@@ -116,11 +97,18 @@ const MonitoringPage = ({ activities }) => {
                                             ? `${
                                                   activity.total_duration * -1
                                               } detik`
-                                            : `${(
+                                            : activity.total_duration * -1 <
+                                              3600
+                                            ? `${(
                                                   (activity.total_duration *
                                                       -1) /
                                                   60
-                                              ).toFixed(2)} menit`}
+                                              ).toFixed(2)} menit`
+                                            : `${(
+                                                  (activity.total_duration *
+                                                      -1) /
+                                                  3600
+                                              ).toFixed(2)} jam`}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
                                         <Link
@@ -135,14 +123,25 @@ const MonitoringPage = ({ activities }) => {
                         </tbody>
                     </table>
                 </div>
-                {/* Button to go back */}
-                <div className="mt-4">
-                    <Link
-                        href="/monitoring"
-                        className="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600"
+                {/* Pagination buttons */}
+                <div className="flex justify-between mt-4 items-center">
+                    <button
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 disabled:opacity-50"
                     >
-                        &larr; Kembali
-                    </Link>
+                        &larr; Previous
+                    </button>
+                    <span className="font-semibold">
+                        Halaman {currentPage} dari {totalPages}
+                    </span>
+                    <button
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 disabled:opacity-50"
+                    >
+                        Next &rarr;
+                    </button>
                 </div>
             </div>
         </AuthenticatedLayout>

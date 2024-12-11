@@ -95,4 +95,22 @@ class GroupsController extends Controller
             'groups' => $groups,
         ]);
     }
+
+    public function addStudent(Request $request, Groups $group)
+    {
+        $request->validate([
+            'users' => 'required|exists:users,id',
+        ]);
+
+        $group->users()->attach($request->users);
+
+        return back()->with('success', 'Student added to group successfully!');
+    }
+
+    public function removeStudent($group, $id)
+    {
+        Groups::find($group)->users()->detach($id);
+
+        // return back()->with('success', 'Student removed from group successfully!');
+    }
 }

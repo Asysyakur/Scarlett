@@ -54,6 +54,9 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::delete('/materi/drag-and-drop/relation/{attid}', [MateriController::class, 'destroyRelation'])->name('dnd.relation.destroy');
 
     Route::post('/dashboard/update', [DashboardController::class, 'update'])->name('dashboard.update');
+
+    Route::post('/groups/{group}/add-student', [GroupsController::class, 'addStudent'])->name('group.addStudent');
+    Route::delete('/groups/{group}/remove-student/{id}', [GroupsController::class, 'removeStudent'])->name('group.removeStudent');
 });
 
 Route::middleware('auth')->group(function () {

@@ -1,9 +1,31 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Head, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import { useActivity } from "@/Contexts/ActivityContext";
 
 export default function StudiKasus({ materi }) {
-    console.log(materi);
+    const { startActivity, stopActivity, currentPath, changePath } =
+        useActivity();
+
+    useEffect(() => {
+        changePath(`/materi/${materi.id}/studi-kasus`);
+        startActivity();
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) stopActivity();
+            else startActivity();
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+            stopActivity();
+        };
+    }, [currentPath]);
+
     return (
         <AuthenticatedLayout>
             <Head title={materi.title} />

@@ -9,6 +9,7 @@ import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
 import Swal from "sweetalert2";
+import { useActivity } from "@/Contexts/ActivityContext";
 
 const GameBoard = ({
     tables,
@@ -48,6 +49,28 @@ const GameBoard = ({
     const [newRelations, setNewRelations] = useState([
         { from: "", to: "", type: "", id: "" }, // Initialize with empty values for each field
     ]);
+    
+    const { startActivity, stopActivity, currentPath, changePath } =
+        useActivity();
+
+    useEffect(() => {
+        changePath(`/materi/${materi.id}/drag-and-drop`);
+        startActivity();
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) stopActivity();
+            else startActivity();
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+            stopActivity();
+        };
+    }, [currentPath]);
 
     const usedAttributes = tableData.flatMap((table) =>
         table.attributes.map((attr) => attr.id)
@@ -82,10 +105,10 @@ const GameBoard = ({
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         let url = "";
         let payload = [];
-    
+
         try {
             // Tentukan endpoint dan data yang dikirim sesuai dengan modalType dan isEditing
             switch (modalType) {
@@ -93,7 +116,10 @@ const GameBoard = ({
                     // Jika sedang dalam mode edit, kirim data dengan ID tabel untuk update
                     if (isEditing) {
                         payload = newTables
-                            .filter((table) => table.name && table.name.trim() !== "")
+                            .filter(
+                                (table) =>
+                                    table.name && table.name.trim() !== ""
+                            )
                             .map((table) => ({
                                 id: table.id, // Pastikan untuk mengirim ID saat edit
                                 name: table.name.trim(),
@@ -101,7 +127,10 @@ const GameBoard = ({
                     } else {
                         // Jika tidak dalam mode edit, buat data baru
                         payload = newTables
-                            .filter((table) => table.name && table.name.trim() !== "")
+                            .filter(
+                                (table) =>
+                                    table.name && table.name.trim() !== ""
+                            )
                             .map((table) => ({
                                 id: table.id, // Pastikan untuk mengirim ID saat edit
                                 name: table.name.trim(),
@@ -109,7 +138,7 @@ const GameBoard = ({
                     }
                     url = `/materi/${materi.id}/drag-and-drop/table`;
                     break;
-    
+
                 case "relation":
                     console.log(newRelations);
                     if (isEditing) {
@@ -151,12 +180,14 @@ const GameBoard = ({
                     }
                     url = `/materi/${materi.id}/drag-and-drop/relation`;
                     break;
-    
+
                 case "attribute":
                     if (isEditing) {
                         // Mengirim atribut dengan ID jika dalam mode edit
                         payload = newAttributes
-                            .filter((attr) => attr.label && attr.label.trim() !== "")
+                            .filter(
+                                (attr) => attr.label && attr.label.trim() !== ""
+                            )
                             .map((attr) => ({
                                 id: attr.id, // Mengirim ID saat mode edit
                                 label: attr.label.trim(),
@@ -164,7 +195,9 @@ const GameBoard = ({
                     } else {
                         // Kirim data atribut baru
                         payload = newAttributes
-                            .filter((attr) => attr.label && attr.label.trim() !== "")
+                            .filter(
+                                (attr) => attr.label && attr.label.trim() !== ""
+                            )
                             .map((attr) => ({
                                 id: attr.id,
                                 label: attr.label.trim(),
@@ -172,24 +205,24 @@ const GameBoard = ({
                     }
                     url = `/materi/${materi.id}/drag-and-drop/attribute`;
                     break;
-    
+
                 default:
                     console.error("Modal type tidak dikenali:", modalType);
                     return;
             }
-    
+
             // Jika payload kosong, beri tahu pengguna
             if (payload.length === 0) {
                 console.warn("Data kosong. Tidak ada yang dikirim ke server.");
                 alert("Data kosong. Pastikan semua input sudah diisi.");
                 return;
             }
-    
+
             // Kirim data ke server
             const response = await axios.post(url, payload);
-    
+
             console.log("Data berhasil dikirim:", response.data);
-    
+
             // Show success alert
             await Swal.fire({
                 icon: "success",
@@ -198,24 +231,26 @@ const GameBoard = ({
                 timer: 1000, // Dismiss after 3 seconds
                 showConfirmButton: false,
             });
-    
+
             // Reset the modal and form states
             setIsModalOpen(false);
             setIsEditing(false);
             setNewAttributes([{ label: "", id: "" }]);
             setNewTables([{ name: "", id: "" }]);
             setNewRelations([{ from: "", to: "", type: "", id: "" }]);
-    
+
             // Reload the page after SweetAlert has been dismissed
             window.location.reload();
-    
         } catch (error) {
             console.error("Terjadi kesalahan saat mengirim data:", error);
             if (error.response) {
                 console.error("Respon server:", error.response.data);
                 alert(`Error dari server: ${error.response.data.message}`);
             } else if (error.request) {
-                console.error("Permintaan tidak mendapat respon:", error.request);
+                console.error(
+                    "Permintaan tidak mendapat respon:",
+                    error.request
+                );
                 alert("Server tidak merespon. Silakan coba lagi nanti.");
             } else {
                 console.error("Error saat mengatur permintaan:", error.message);
@@ -223,7 +258,6 @@ const GameBoard = ({
             }
         }
     };
-    
 
     const handleDragEnd = useCallback(
         (event) => {

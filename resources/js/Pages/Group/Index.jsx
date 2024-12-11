@@ -7,14 +7,20 @@ export default function Group({ auth, users, groups }) {
     const { post } = useForm();
     const [groupCount, setGroupCount] = useState(1);
     const [showModal, setShowModal] = useState(false);
-    const [selectedGroupId, setSelectedGroupId] = useState(null);
+    const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+    const [selectedGroup, setSelectedGroup] = useState(null);
     const [drawioLink, setDrawioLink] = useState("");
-    const {
-        startActivity,
-        stopActivity,
-        currentPath,
-        changePath,
-    } = useActivity();
+    const [selectedMembers, setSelectedMembers] = useState([]);
+    const { startActivity, stopActivity, currentPath, changePath } =
+        useActivity();
+    const groupMembers = groups.flatMap((group) =>
+        group.users.map((user) => user.id)
+    );
+
+    const usersNotInGroups = users.filter(
+        (user) => !groupMembers.includes(user.id)
+    );
+    console.log(groupMembers);
 
     useEffect(() => {
         // Manually update the path when the component mounts
@@ -27,7 +33,7 @@ export default function Group({ auth, users, groups }) {
         const handleVisibilityChange = () => {
             if (document.hidden) {
                 stopActivity();
-            }else{
+            } else {
                 startActivity();
             }
         };
@@ -57,14 +63,16 @@ export default function Group({ auth, users, groups }) {
         post(route("group.randomize"));
     };
 
-    const handleShowModal = (groupId) => {
-        setSelectedGroupId(groupId);
+    const handleShowModal = (group) => {
+        setSelectedGroup(group);
         setShowModal(true);
     };
 
     const handleCloseModal = () => {
         setShowModal(false);
-        setSelectedGroupId(null);
+        setSelectedGroup(null);
+        setSelectedMembers([]);
+        setShowAddMemberModal(false);
         setDrawioLink("");
     };
 
@@ -75,12 +83,57 @@ export default function Group({ auth, users, groups }) {
         }
 
         // Send the link to the server
-        await axios.post(route("group.updateDrawioLink", selectedGroupId), {
+        await axios.post(route("group.updateDrawioLink", selectedGroup.id), {
             drawio_link: drawioLink,
         });
 
         setShowModal(false);
         router.reload();
+    };
+
+    const handleEditGroup = (group) => {
+        setShowAddMemberModal(true);
+        setSelectedGroup();
+        setSelectedGroup(group);
+    };
+
+    const handleAddMember = async () => {
+        // Logic untuk menambah anggota ke grup
+        console.log(`Menambahkan anggota: ${selectedMembers.join(", ")}`);
+        // Tambahkan logika untuk menambah anggota ke grup di sini
+        try {
+            await axios.post(route("group.addStudent", selectedGroup.id), {
+                users: selectedMembers,
+            });
+            router.reload();
+        } catch (error) {
+            console.error(error);
+        }
+
+        setShowAddMemberModal(false);
+        setSelectedMembers([]);
+        setSelectedGroup(null);
+    };
+
+    const handleRemoveMember = async (userId) => {
+        // Logic untuk menghapus anggota dari grup
+        console.log(`Menghapus anggota: ${userId}`);
+
+        try {
+            await axios.delete(
+                route("group.removeStudent", {
+                    group: selectedGroup.id,
+                    id: userId,
+                })
+            );
+            router.reload();
+        } catch (error) {
+            console.error(error);
+        }
+        setShowAddMemberModal(false);
+        setSelectedMembers([]);
+        setSelectedGroup(null);
+        // Tambahkan logika untuk menghapus anggota dari grup di sini
     };
 
     return (
@@ -161,16 +214,24 @@ export default function Group({ auth, users, groups }) {
                                     )}
                                 </ul>
 
-                                {/* Button to open the modal */}
+                                {/* Buttons to open the modal and edit the group */}
                                 {auth?.user?.role_id === 1 && (
-                                    <div className="mt-4">
+                                    <div className="mt-4 flex gap-4 w-full">
                                         <button
                                             onClick={() =>
-                                                handleShowModal(group.id)
+                                                handleShowModal(group)
                                             }
-                                            className="px-4 py-2 bg-gradient-to-br from-amber-400 to-amber-500 text-white rounded-lg hover:bg-amber-600 transition duration-200"
+                                            className="px-4 py-2 w-full bg-gradient-to-br from-amber-400 to-amber-500 text-white rounded-lg hover:bg-amber-600 transition duration-200"
                                         >
                                             Input Draw.io Link
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleEditGroup(group)
+                                            }
+                                            className="px-4 py-2 w-full bg-gradient-to-br from-blue-400 to-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+                                        >
+                                            Edit Group
                                         </button>
                                     </div>
                                 )}
@@ -184,6 +245,91 @@ export default function Group({ auth, users, groups }) {
                 </div>
             </div>
 
+            {showAddMemberModal && (
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-4xl w-full">
+                        <h3 className="text-xl font-semibold text-gray-700 mb-4">
+                            Tambah Anggota ke Grup
+                        </h3>
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <div className="w-full">
+                                    <h4 className="text-lg font-semibold text-gray-600 mb-2">
+                                        Anggota di Grup
+                                    </h4>
+                                    <ul className="border border-gray-300 rounded-lg p-2 overflow-auto h-64">
+                                        {selectedGroup?.users.map((user) => (
+                                            <li
+                                                key={user.id}
+                                                className="flex justify-between items-center mb-2"
+                                            >
+                                                <span>{user.name}</span>
+                                                <button
+                                                    onClick={() =>
+                                                        handleRemoveMember(
+                                                            user.id
+                                                        )
+                                                    }
+                                                    className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
+                                                >
+                                                    Hapus
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                <div className="w-full">
+                                    <h4 className="text-lg font-semibold text-gray-600 mb-2">
+                                        Anggota yang Belum di Grup
+                                    </h4>
+                                    <select
+                                        multiple
+                                        value={selectedMembers}
+                                        onChange={(e) => {
+                                            const options = e.target.options;
+                                            const selectedValues = [];
+                                            for (
+                                                let i = 0;
+                                                i < options.length;
+                                                i++
+                                            ) {
+                                                if (options[i].selected) {
+                                                    selectedValues.push(
+                                                        options[i].value
+                                                    );
+                                                }
+                                            }
+                                            setSelectedMembers(selectedValues);
+                                        }}
+                                        className="w-full p-2 border border-gray-300 rounded-lg mb-4 h-64 overflow-auto"
+                                    >
+                                        {usersNotInGroups.map((user) => (
+                                            <option
+                                                key={user.id}
+                                                value={user.id}
+                                            >
+                                                {user.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="flex w-full">
+                                <button
+                                    onClick={() => setShowAddMemberModal(false)}
+                                    className="px-4 py-2 w-full bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-200 mr-2"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={handleAddMember}
+                                    className="px-4 py-2 w-full bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+                                >
+                                    Tambah
+                                </button>
+                            </div>
+                    </div>
+                </div>
+            )}
             {/* Modal for Inputting Draw.io Link */}
             {showModal && (
                 <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">

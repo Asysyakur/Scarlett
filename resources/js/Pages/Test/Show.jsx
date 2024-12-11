@@ -1,14 +1,36 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import Peer from "peerjs";
 import axios from "axios";
 import WarnigIlu from "./assets/Warning.svg";
+import { useActivity } from "@/Contexts/ActivityContext";
 
 function StudentScreenShare({ auth, test }) {
     const [isSharing, setIsSharing] = useState(false);
     const streamRef = useRef(null);
     const peerRef = useRef(null);
+    const { startActivity, stopActivity, currentPath, changePath } =
+        useActivity();
+
+    useEffect(() => {
+        changePath(`/test/${test.id}`);
+        startActivity();
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) stopActivity();
+            else startActivity();
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+            stopActivity();
+        };
+    }, [currentPath]);
 
     const startScreenShare = async () => {
         try {
