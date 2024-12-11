@@ -20,6 +20,7 @@ export default function Index({ materis: initialMateri, auth }) {
         file: null,
         dnd: false,
         studikasus: false,
+        studikasusfile: null,
     });
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
@@ -88,6 +89,9 @@ export default function Index({ materis: initialMateri, auth }) {
         if (newMateri.file) {
             formData.append("file", newMateri.file);
         }
+        if (newMateri.studikasusfile) {
+            formData.append("studikasusfile", newMateri.studikasusfile);
+        }
 
         // Submit the form via Inertia for adding or updating
         if (isEditing) {
@@ -108,6 +112,7 @@ export default function Index({ materis: initialMateri, auth }) {
                         file: null,
                         dnd: false,
                         studikasus: false,
+                        studikasusfile:null,
                     });
                     window.location.reload();
                 });
@@ -125,6 +130,7 @@ export default function Index({ materis: initialMateri, auth }) {
                     file: null,
                     dnd: false,
                     studikasus: false,
+                    studikasusfile:null,
                 });
                 window.location.reload();
             });
@@ -143,6 +149,7 @@ export default function Index({ materis: initialMateri, auth }) {
             file: null,
             dnd: materi.dnd,
             studikasus: materi.studikasus,
+            studikasusfile: null,
         });
         setIsModalOpen(true);
     };
@@ -196,6 +203,7 @@ export default function Index({ materis: initialMateri, auth }) {
                 video: "",
                 image: null,
                 file: null,
+                studikasusfile: null,
             });
         };
     };
@@ -216,6 +224,7 @@ export default function Index({ materis: initialMateri, auth }) {
                     video: "",
                     image: null,
                     file: null,
+                    studikasusfile: null,
                 });
             }
         };
@@ -382,6 +391,26 @@ export default function Index({ materis: initialMateri, auth }) {
                                         />
                                         Studi Kasus
                                     </label>
+                                    {newMateri.studikasus ? (
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                Upload File
+                                            </label>
+                                            <input
+                                                type="file"
+                                                onChange={(e) =>
+                                                    setNewMateri((prev) => ({
+                                                        ...prev,
+                                                        studikasusfile:
+                                                            e.target.files[0],
+                                                    }))
+                                                }
+                                                className="p-2 border border-gray-300 rounded-md"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <></>
+                                    )}
                                 </div>
 
                                 <div className="flex justify-between pb-6">

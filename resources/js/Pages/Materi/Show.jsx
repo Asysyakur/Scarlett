@@ -49,10 +49,12 @@ export default function Show({ materi }) {
 
     const handlePageChange = () => {
         let redirectUrl = "/materi"; // Default route
-        if (materi.dnd === 1 || materi.studikasus === 1) {
+        if (materi.dnd === 1) {
             redirectUrl = `/materi/${materi.id}/drag-and-drop`; // Set specific route if conditions match
+        } else if (materi.studikasus === 1) {
+            redirectUrl = `/materi/${materi.id}/studi-kasus`; // Set specific route if conditions match
         }
-        
+
         return redirectUrl;
     };
 
@@ -61,6 +63,15 @@ export default function Show({ materi }) {
         <AuthenticatedLayout>
             <Head title={materi.title} />
             <div className="max-w-7xl mx-auto my-6 p-6 border border-amber-300 bg-white rounded-lg shadow-md">
+                {/* Back Link */}
+                <div className="mb-4">
+                    <Link
+                        href={route("materi.index")} // Adjust this route as needed
+                        className="text-amber-500 hover:text-amber-700 font-semibold"
+                    >
+                        Kembali ke Materi
+                    </Link>
+                </div>
                 <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
                     {materi.title}
                 </h1>

@@ -30,6 +30,13 @@ class MateriController extends Controller
         ]);
     }
 
+    public function studiKasus(Materi $materi)
+    {
+        return Inertia::render('Materi/StudiKasus',[
+            'materi' => $materi,
+        ]);
+    }
+
     public function dndSave(Request $request)
     {
         // Validate incoming request data (array of tables)
@@ -89,6 +96,7 @@ class MateriController extends Controller
             'file' => 'nullable|file',
             'dnd' => 'required|string',
             'studikasus' => 'required|string',
+            'studikasusfile' => 'nullable|file',
         ]);
 
         // Convert 'dnd' and 'studikasus' to boolean
@@ -106,6 +114,9 @@ class MateriController extends Controller
         }
         if ($request->hasFile('file')) {
             $data['file'] = $request->file('file')->store('materi_files', 'public');
+        }
+        if ($request->hasFile('studikasusfile')) {
+            $data['studikasusfile'] = $request->file('studikasusfile')->store('materi_studikasusfiles', 'public');
         }
 
         // Create the new Materi record
@@ -125,6 +136,7 @@ class MateriController extends Controller
             'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:10240',
             'dnd' => 'required|string',
             'studikasus' => 'required|string',
+            'studikasusfile' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:10240',
         ]);
 
         $dnd = filter_var($request->input('dnd'), FILTER_VALIDATE_BOOLEAN);
@@ -154,6 +166,15 @@ class MateriController extends Controller
             }
             // Store the new file
             $materi->file = $request->file('file')->store('materi_files', 'public');
+        }
+
+        if ($request->hasFile('studikasusfile')) {
+            // Delete the old file if it exists
+            if ($materi->studikasusfile) {
+                Storage::delete('public/' . $materi->studikasusfile);
+            }
+            // Store the new file
+            $materi->studikasusfile = $request->file('studikasusfile')->store('materi_studikasusfiles', 'public');
         }
 
         // Save the updated Materi

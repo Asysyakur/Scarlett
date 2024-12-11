@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/materi', [MateriController::class, 'index'])->name('materi.index');
     Route::get('/materi/{materi}', [MateriController::class, 'show'])->name('materi.show');
     Route::get('/materi/{materi}/drag-and-drop', [MateriController::class, 'dragAndDrop'])->name('materi.dragAndDrop');
+    Route::get('/materi/{materi}/studi-kasus', [MateriController::class, 'studiKasus'])->name('materi.studiKasus');
     Route::post('/materi/drag-and-drop/save', [MateriController::class, 'dndSave'])->name('materi.dragAndDrop.save');
 
     Route::get('/test', [TestController::class, 'index'])->name('test.index');

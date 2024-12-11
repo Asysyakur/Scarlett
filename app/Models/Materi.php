@@ -17,7 +17,8 @@ class Materi extends Model
         'video',
         'file',
         'dnd',
-        'studikasus'
+        'studikasus',
+        'studikasusfile'
     ];
 
     public function attributes()

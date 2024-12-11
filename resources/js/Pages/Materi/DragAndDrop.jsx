@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import Swal from "sweetalert2";
 
 const GameBoard = ({
@@ -418,26 +418,31 @@ const GameBoard = ({
 
     const Connections = ({ relations, tables }) => {
         const [lines, setLines] = useState([]);
-    
+
         useEffect(() => {
             const updatedLines = relations.map((relation) => {
-                const fromTable = tables.find((table) => table.id === relation.from);
-                const toTable = tables.find((table) => table.id === relation.to);
-    
+                const fromTable = tables.find(
+                    (table) => table.id === relation.from
+                );
+                const toTable = tables.find(
+                    (table) => table.id === relation.to
+                );
+
                 if (fromTable?.ref?.current && toTable?.ref?.current) {
-                    const fromRect = fromTable.ref.current.getBoundingClientRect();
+                    const fromRect =
+                        fromTable.ref.current.getBoundingClientRect();
                     const toRect = toTable.ref.current.getBoundingClientRect();
-    
+
                     let x1, y1, x2, y2;
-    
+
                     // Hitung posisi grid dari tabel
                     const fromTablePosition = tables.indexOf(fromTable);
                     const toTablePosition = tables.indexOf(toTable);
-    
+
                     // Tentukan apakah posisi dari tabel ada di tengah (2, 5, 8, dst)
                     const isFromTableCenter = fromTablePosition % 3 === 1; // Kolom tengah
                     const isToTableCenter = toTablePosition % 3 === 1; // Kolom tengah
-    
+
                     // Tentukan dari mana garis akan keluar (kiri, kanan, atau tengah) pada fromTable
                     if (isFromTableCenter) {
                         if (toTablePosition > fromTablePosition) {
@@ -445,12 +450,14 @@ const GameBoard = ({
                         } else {
                             x1 = fromRect.left; // Jika toTable ada di kiri, keluar dari kiri
                         }
-                    } else if (fromTablePosition % 3 === 0) { // Jika fromTable ada di kolom kiri
+                    } else if (fromTablePosition % 3 === 0) {
+                        // Jika fromTable ada di kolom kiri
                         x1 = fromRect.right; // Selalu keluar dari kanan
-                    } else { // Jika fromTable ada di kolom kanan
+                    } else {
+                        // Jika fromTable ada di kolom kanan
                         x1 = fromRect.left; // Selalu keluar dari kiri
                     }
-    
+
                     // Tentukan dari mana garis akan masuk (kiri, kanan, atau tengah) pada toTable
                     if (isToTableCenter) {
                         if (toTablePosition > fromTablePosition) {
@@ -458,22 +465,26 @@ const GameBoard = ({
                         } else {
                             x2 = toRect.right; // Jika fromTable ada di kanan, masuk dari kanan
                         }
-                    } else if (toTablePosition % 3 === 0) { // Jika toTable ada di kolom kiri
+                    } else if (toTablePosition % 3 === 0) {
+                        // Jika toTable ada di kolom kiri
                         x2 = toRect.right; // Selalu masuk dari kanan
-                    } else { // Jika toTable ada di kolom kanan
+                    } else {
+                        // Jika toTable ada di kolom kanan
                         x2 = toRect.left; // Selalu masuk dari kiri
                     }
-    
+
                     // Atur y1 dan y2 agar berada di tengah tinggi dari tabel
                     y1 = fromRect.top + fromRect.height / 2;
                     y2 = toRect.top + toRect.height / 2;
-    
+
                     // Buat kurva dari x1, y1 ke x2, y2
                     const middleX = (x1 + x2) / 2;
                     const offset = 20 * relations.indexOf(relation);
-    
+
                     return {
-                        path: `M ${x1},${y1 + offset} H ${middleX} V ${y2 + offset} H ${x2}`,
+                        path: `M ${x1},${y1 + offset} H ${middleX} V ${
+                            y2 + offset
+                        } H ${x2}`,
                         labelX: middleX,
                         labelY: y2 + offset,
                         type: relation.type,
@@ -481,10 +492,10 @@ const GameBoard = ({
                 }
                 return null;
             });
-    
+
             setLines(updatedLines.filter((line) => line !== null));
         }, [relations, tables]);
-    
+
         return (
             <svg className="absolute inset-0 pointer-events-none z-30 w-full h-full">
                 {lines.map((line, index) => (
@@ -522,7 +533,7 @@ const GameBoard = ({
             </svg>
         );
     };
-    
+
     const addNewTableField = () => {
         setNewTables([...newTables, { name: "", id: "" }]);
     };
@@ -801,18 +812,32 @@ const GameBoard = ({
                             </div>
                         </div>
                     )}
-                    <div className="w-full mb-4 justify-end flex">
-                        <button
-                            onClick={() => handleSave()}
-                            className="bg-purple-500 text-white px-4 py-2 rounded "
-                        >
-                            Save
-                        </button>
+                    <div className="w-full mb-4 justify-between flex">
+                        <div className="mb-4">
+                            <Link
+                                href={route("materi.index")} // Adjust this route as needed
+                                className="text-amber-500 hover:text-amber-700 font-semibold"
+                            >
+                                Kembali ke Materi
+                            </Link>
+                        </div>
+                        <div className="flex gap-4 items-center">
+                            <button
+                                onClick={() => handleSave()}
+                                className="bg-green-500 hover:bg-green-700 transition-all ease-in-out duration-200 text-white px-4 py-2 font-semibold rounded "
+                            >
+                                Simpan
+                            </button>
+                            <Link
+                                href={`/materi/${materi.id}/studi-kasus`} // Adjust this route as needed
+                                className="text-white hover:bg-amber-700 bg-amber-500 transition-all ease-in-out duration-200 font-semibold px-4 py-2 rounded"
+                            >
+                                Studi Kasus
+                            </Link>
+                        </div>
                     </div>
                     <div className="flex flex-col gap-6">
-                        <div
-                            className={`grid gap-24 grid-cols-3`}
-                        >
+                        <div className={`grid gap-24 grid-cols-3`}>
                             {tableData.map((table) => (
                                 <DroppableTable key={table.id} table={table} />
                             ))}

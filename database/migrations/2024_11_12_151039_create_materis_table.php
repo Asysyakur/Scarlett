@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('file')->nullable(); // File of the materi
             $table->boolean('dnd')->default(false);
             $table->boolean('studikasus')->default(false);
+            $table->string('studikasusfile')->nullable();
             $table->timestamps();
         });
     }
