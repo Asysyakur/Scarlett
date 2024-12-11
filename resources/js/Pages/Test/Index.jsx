@@ -57,17 +57,57 @@ export default function Index({ tests: initialTests, auth }) {
         formData.append("description", newTest.description);
         formData.append("link", newTest.link);
 
-        if (isEditing) {
-            await axios.post(`/test/${selectedTest.id}`, formData).then(() => {
-                setIsModalOpen(false);
-                resetForm();
-                window.location.reload();
-            });
-        } else {
-            await axios.post("/test", formData).then(() => {
-                setIsModalOpen(false);
-                resetForm();
-                window.location.reload();
+        try {
+            let response;
+
+            if (isEditing) {
+                // Update the test
+                response = await axios.post(
+                    `/test/${selectedTest.id}`,
+                    formData
+                );
+
+                // Success response
+                Swal.fire({
+                    icon: "success",
+                    title: "Test Updated Successfully!",
+                    text: "The test has been updated.",
+                    timer: 1000, // Dismiss after 3 seconds
+                    showConfirmButton: false,
+                }).then(() => {
+                    // Reload after Swal closes
+                    setIsModalOpen(false);
+                    resetForm();
+                    window.location.reload();
+                });
+            } else {
+                // Add new test
+                response = await axios.post("/test", formData);
+
+                // Success response
+                Swal.fire({
+                    icon: "success",
+                    title: "Test Added Successfully!",
+                    text: "The new test has been added.",
+                    timer: 1000, // Dismiss after 3 seconds
+                    showConfirmButton: false,
+                }).then(() => {
+                    // Reload after Swal closes
+                    setIsModalOpen(false);
+                    resetForm();
+                    window.location.reload();
+                });
+            }
+        } catch (error) {
+            console.error("Error submitting form:", error);
+
+            // Show error toast if submission fails
+            Swal.fire({
+                icon: "error",
+                title: "Submission Failed",
+                text: "There was an error submitting your form. Please try again.",
+                timer: 1000,
+                showConfirmButton: false,
             });
         }
     };
@@ -86,11 +126,17 @@ export default function Index({ tests: initialTests, auth }) {
             if (result.isConfirmed) {
                 try {
                     await axios.delete(`/test/${test.id}`);
-                    setTests((prevTests) => prevTests.filter((t) => t.id !== test.id));
+                    setTests((prevTests) =>
+                        prevTests.filter((t) => t.id !== test.id)
+                    );
                     Swal.fire("Berhasil!", "Test berhasil dihapus.", "success");
                 } catch (error) {
                     console.error("Error saat menghapus test: ", error);
-                    Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus test.", "error");
+                    Swal.fire(
+                        "Gagal!",
+                        "Terjadi kesalahan saat menghapus test.",
+                        "error"
+                    );
                 }
             }
         });

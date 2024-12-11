@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GroupsController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\ProfileController;
@@ -19,10 +20,6 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
-
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/monitoring', function () {
@@ -55,13 +52,16 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::delete('/materi/drag-and-drop/attribute/{attid}', [MateriController::class, 'destroyAttribute'])->name('dnd.attribute.destroy');
     Route::delete('/materi/drag-and-drop/table/{attid}', [MateriController::class, 'destroyTable'])->name('dnd.table.destroy');
     Route::delete('/materi/drag-and-drop/relation/{attid}', [MateriController::class, 'destroyRelation'])->name('dnd.relation.destroy');
+
+    Route::post('/dashboard/update', [DashboardController::class, 'update'])->name('dashboard.update');
 });
 
 Route::middleware('auth')->group(function () {
     Route::get('/diagram', function () {
         return Inertia::render('DrawIo/Index');
     })->name('diagram');
-
+    
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/start-screen-share', [TestController::class, 'startScreenShare']);
     Route::post('/stop-screen-share', [TestController::class, 'stopScreenShare']);
 

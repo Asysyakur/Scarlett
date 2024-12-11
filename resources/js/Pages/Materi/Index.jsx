@@ -72,6 +72,7 @@ export default function Index({ materis: initialMateri, auth }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Validate the form before proceeding
         if (!validateForm()) return;
 
         const formData = new FormData();
@@ -93,16 +94,31 @@ export default function Index({ materis: initialMateri, auth }) {
             formData.append("studikasusfile", newMateri.studikasusfile);
         }
 
-        // Submit the form via Inertia for adding or updating
-        if (isEditing) {
-            // Update materi
-            console.log(formData);
-            const response = await axios
-                .post(`/materi/${selectedMateri.id}`, formData)
-                .then(() => {
+        try {
+            let response;
+
+            if (isEditing) {
+                // Update materi
+                response = await axios.post(
+                    `/materi/${selectedMateri.id}`,
+                    formData
+                );
+                console.log(response);
+
+                // Success response
+                Swal.fire({
+                    icon: "success",
+                    title: "Materi Updated Successfully!",
+                    text: "Your materi has been updated.",
+                    timer: 1000, // Dismiss after 3 seconds
+                    showConfirmButton: false,
+                }).then(() => {
+                    // Reset form and close modal after Swal
                     setIsModalOpen(false);
                     setIsEditing(false);
                     setSelectedMateri(null);
+
+                    // Reset form data and reload the page
                     setNewMateri({
                         title: "",
                         description: "",
@@ -112,27 +128,52 @@ export default function Index({ materis: initialMateri, auth }) {
                         file: null,
                         dnd: false,
                         studikasus: false,
-                        studikasusfile:null,
+                        studikasusfile: null,
                     });
+
                     window.location.reload();
                 });
-            console.log(response);
-        } else {
-            // Add new materi
-            await axios.post("/materi", formData).then(() => {
-                setIsModalOpen(false);
-                setNewMateri({
-                    title: "",
-                    description: "",
-                    content: "",
-                    video: "",
-                    image: null,
-                    file: null,
-                    dnd: false,
-                    studikasus: false,
-                    studikasusfile:null,
+            } else {
+                // Add new materi
+                response = await axios.post("/materi", formData);
+
+                // Success response
+                Swal.fire({
+                    icon: "success",
+                    title: "Materi Added Successfully!",
+                    text: "Your new materi has been added.",
+                    timer: 1000, // Dismiss after 3 seconds
+                    showConfirmButton: false,
+                }).then(() => {
+                    // Reset form and close modal after Swal
+                    setIsModalOpen(false);
+
+                    // Reset form data and reload the page
+                    setNewMateri({
+                        title: "",
+                        description: "",
+                        content: "",
+                        video: "",
+                        image: null,
+                        file: null,
+                        dnd: false,
+                        studikasus: false,
+                        studikasusfile: null,
+                    });
+
+                    window.location.reload();
                 });
-                window.location.reload();
+            }
+        } catch (error) {
+            console.error("Error submitting form:", error);
+
+            // Show error toast if submission fails
+            Swal.fire({
+                icon: "error",
+                title: "Submission Failed",
+                text: "There was an error submitting your form. Please try again.",
+                timer: 1000,
+                showConfirmButton: false,
             });
         }
     };
