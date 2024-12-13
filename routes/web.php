@@ -33,6 +33,9 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
         return Inertia::render('Monitoring/MonitoringTest/Index');
     })->name('monitoring.monitoringTest');
 
+    Route::get('/monitoring/erd', [ActivityController::class, 'erdIndex'])->name('monitoring.erd');
+    Route::get('/monitoring/erd/{id}', [ActivityController::class, 'erdShow'])->name('monitoring.erd.show');
+
     Route::post('/kelompok/storeMany', [GroupsController::class, 'storeMany'])->name('group.storeMany');
     Route::post('/kelompok/randomize', [GroupsController::class, 'randomize'])->name('group.randomize');
     Route::post('/kelompok/{group}/update-drawio-link', [GroupsController::class, 'updateDrawioLink'])->name('group.updateDrawioLink');
