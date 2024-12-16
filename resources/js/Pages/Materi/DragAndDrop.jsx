@@ -140,7 +140,6 @@ const GameBoard = ({
                     break;
 
                 case "relation":
-                    console.log(newRelations);
                     if (isEditing) {
                         // Mengirim relasi dengan ID jika dalam mode edit
                         payload = newRelations
@@ -220,8 +219,6 @@ const GameBoard = ({
 
             // Kirim data ke server
             const response = await axios.post(url, payload);
-
-            console.log("Data berhasil dikirim:", response.data);
 
             // Show success alert
             await Swal.fire({
@@ -530,7 +527,7 @@ const GameBoard = ({
 
             setLines(updatedLines.filter((line) => line !== null));
         }, [relations, tables]);
-
+        
         return (
             <svg className="absolute inset-0 pointer-events-none z-30 w-full h-full">
                 {lines.map((line, index) => (
@@ -768,9 +765,8 @@ const GameBoard = ({
         setIsEditing(true);
     };
 
-    const handleSave = async () => {
-        console.log(tableData); // This logs the tableData to the console for debugging
-
+        const handleSave = async () => {
+    
         try {
             // Prepare payload with all tables data
             const payload = tableData.map((table) => ({
@@ -779,22 +775,34 @@ const GameBoard = ({
                 user_id: auth.user.id,
                 attributes: table.attributes, // Assuming attributes is an array
             }));
-
+    
             // Example: Making an API call to save the table data
             const response = await axios.post(
                 "/materi/drag-and-drop/save",
                 payload
             );
-
+    
             // Check if the response is successful
             if (response.status === 200) {
-                console.log("Data saved successfully:", response.data);
-                // Optionally, update the state or provide feedback to the user
+                // Show success alert
+                await Swal.fire({
+                    icon: "success",
+                    title: "Berhasil!",
+                    text: "ERDmu berhasil disimpan.",
+                    timer: 2000, // Dismiss after 2 seconds
+                    showConfirmButton: false,
+                });
             }
         } catch (error) {
             // Handle errors
             console.error("Error saving data:", error);
-            alert("Terjadi kesalahan saat menyimpan data.");
+            await Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Ada kesalahan saat menyimpan data. silakan coba lagi.",
+                timer: 2000, // Dismiss after 2 seconds
+                showConfirmButton: false,
+            });
         }
     };
 

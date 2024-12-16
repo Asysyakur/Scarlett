@@ -69,8 +69,6 @@ export default function Dashboard({ auth, data }) {
                 identitas_pembelajaran: formValues.identitasPembelajaran,
             });
 
-            console.log("Form Submitted Successfully:", response.data);
-
             // Display success toast
             Swal.fire({
                 icon: "success",

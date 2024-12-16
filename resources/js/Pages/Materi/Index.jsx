@@ -103,7 +103,6 @@ export default function Index({ materis: initialMateri, auth }) {
                     `/materi/${selectedMateri.id}`,
                     formData
                 );
-                console.log(response);
 
                 // Success response
                 Swal.fire({
@@ -475,12 +474,12 @@ export default function Index({ materis: initialMateri, auth }) {
                 )}
 
                 {/* Container for the grid layout */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-2 text-center">
                     {materis.map((materi) => (
                         <div key={materi.id} className="relative">
                             <Link
                                 href={`/materi/${materi.id}`}
-                                className="transform flex flex-col md:mx-24 mx-12 transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl"
+                                className="transform flex flex-col md:mx-24 mx-6 transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl"
                             >
                                 <img
                                     src={

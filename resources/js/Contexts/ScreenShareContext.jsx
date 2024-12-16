@@ -28,7 +28,6 @@ export function ScreenShareProvider({ children, auth }) {
         const teacherPeer = new Peer();
         
         teacherPeer.on("open", (id) => {
-            console.log("Teacher Peer ID:", id);
             setPeer(teacherPeer);
         });
 
@@ -50,7 +49,6 @@ export function ScreenShareProvider({ children, auth }) {
         const channel = pusher.subscribe("test-monitoring");
 
         channel.bind("screen-share-started", (data) => {
-            console.log("Received screen share data:", data);
 
             if (!data.peerId || !data.name) {
                 removeStream(data.studentId);

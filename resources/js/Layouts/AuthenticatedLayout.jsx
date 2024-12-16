@@ -169,7 +169,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 key={index}
                                 href={item.href}
                                 active={route().current(item.href)}
-                                className="text-red-600 hover:text-yellow-500"
+                                className="text-amber-200 hover:text-yellow-500"
                             >
                                 {item.name}
                             </ResponsiveNavLink>
@@ -180,7 +180,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             <ResponsiveNavLink
                                 href="/monitoring"
                                 active={route().current("/monitoring")}
-                                className="text-red-600 hover:text-yellow-500"
+                                className="text-amber-200 hover:text-yellow-500"
                             >
                                 Monitoring
                             </ResponsiveNavLink>

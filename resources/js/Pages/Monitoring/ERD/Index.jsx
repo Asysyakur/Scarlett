@@ -7,7 +7,6 @@ const ERDIndex = ({ usersInErd, materials }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [filteredUsers, setFilteredUsers] = useState([]);
     const usersPerPage = 10;
-    console.log(usersInErd);
     useEffect(() => {
         if (Array.isArray(usersInErd)) {
             const filtered = usersInErd.filter((user) =>

@@ -20,8 +20,6 @@ export default function Group({ auth, users, groups }) {
     const usersNotInGroups = users.filter(
         (user) => !groupMembers.includes(user.id)
     );
-    console.log(groupMembers);
-
     useEffect(() => {
         // Manually update the path when the component mounts
         changePath("/kelompok");
@@ -98,8 +96,6 @@ export default function Group({ auth, users, groups }) {
     };
 
     const handleAddMember = async () => {
-        // Logic untuk menambah anggota ke grup
-        console.log(`Menambahkan anggota: ${selectedMembers.join(", ")}`);
         // Tambahkan logika untuk menambah anggota ke grup di sini
         try {
             await axios.post(route("group.addStudent", selectedGroup.id), {
@@ -116,8 +112,6 @@ export default function Group({ auth, users, groups }) {
     };
 
     const handleRemoveMember = async (userId) => {
-        // Logic untuk menghapus anggota dari grup
-        console.log(`Menghapus anggota: ${userId}`);
 
         try {
             await axios.delete(

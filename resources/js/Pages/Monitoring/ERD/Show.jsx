@@ -3,21 +3,20 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
 
 const Show = ({ erdUser, erdRelation }) => {
-    console.log(erdUser);
-
+    
     const Connections = ({ relations, tables }) => {
         const [lines, setLines] = useState([]);
 
         useEffect(() => {
             const updatedLines = relations.map((relation) => {
                 const fromTable = tables.find(
-                    (table) => table.id === relation.from
+                    (table) => table.table_id === relation.from
                 );
                 const toTable = tables.find(
-                    (table) => table.id === relation.to
+                    (table) => table.table_id === relation.to
                 );
-
-                if (fromTable && toTable) {
+                
+                if (fromTable?.ref?.current && toTable?.ref?.current) {
                     const fromRect =
                         fromTable.ref.current.getBoundingClientRect();
                     const toRect = toTable.ref.current.getBoundingClientRect();

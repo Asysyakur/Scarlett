@@ -42,7 +42,6 @@ function StudentScreenShare({ auth, test }) {
             // Tambahkan event listener untuk menghentikan screen share saat stream berakhir
             stream.getTracks().forEach((track) => {
                 track.onended = () => {
-                    console.log("Screen sharing ended by user.");
                     stopScreenShare();
                 };
             });
@@ -54,7 +53,6 @@ function StudentScreenShare({ auth, test }) {
             const peer = new Peer();
 
             peer.on("open", async (peerId) => {
-                console.log("Student Peer ID:", peerId);
 
                 await axios.post("/start-screen-share", {
                     studentId: auth.user.id,
@@ -63,7 +61,6 @@ function StudentScreenShare({ auth, test }) {
                 });
 
                 peer.on("call", (call) => {
-                    console.log("Received call from:", call.peer);
 
                     if (streamRef.current) {
                         const localStream = streamRef.current.srcObject;

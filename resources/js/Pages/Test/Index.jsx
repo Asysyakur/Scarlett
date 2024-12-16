@@ -266,13 +266,13 @@ export default function Index({ tests: initialTests, auth }) {
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-2 text-center">
                     {tests.map((test) => (
                         <div key={test.id} className="relative">
                             <Link
                                 key={test.id}
                                 href={`/test/${test.id}`}
-                                className="transform flex flex-col md:mx-24 mx-12 transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl"
+                                className="transform flex flex-col md:mx-24 mx-6 transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl"
                             >
                                 <h2 className="text-2xl font-semibold text-gray-800 mb-4">
                                     {test.name}
