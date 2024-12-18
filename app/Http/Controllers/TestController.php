@@ -13,7 +13,7 @@ class TestController extends Controller
     public function index()
     {
         $tests = Test::all(); // Fetch all tests from the database
-        
+
         return Inertia::render('Test/Index', [
             'tests' => $tests,
         ]);
@@ -27,12 +27,70 @@ class TestController extends Controller
         ]);
     }
 
-    public function capture(Request $request)
+    public function store(Request $request)
     {
-        $stream = $request->getContent(); // Capture the incoming request data
-        // Broadcast the test data
-        event(new testingEvent($stream,1));
+        $request->validate([
+            'name' => 'required|string',
+            'description' => 'required|string',
+            'link' => 'nullable|url',
+        ]);
 
-        return 'Test data captured and broadcasted successfully!';
+        $data = $request->only(['name', 'description', 'link']);
+
+        // Create the new Materi
+        Test::create($data);
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $test = Test::findOrFail($id); // Pastikan test ada
+            $test->delete(); // Hapus test dari database
+
+            return response()->json(['message' => 'Test berhasil dihapus'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Terjadi kesalahan saat menghapus test'], 500);
+        }
+    }
+
+    public function edit(Request $request, $id)
+    {
+        // Validasi input
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+            'link' => 'required|url',
+        ]);
+
+        // Temukan test berdasarkan ID
+        $test = Test::findOrFail($id);
+
+        // Update data test
+        $test->update($validated);
+
+        return response()->json($test);
+    }
+
+
+    public function startScreenShare(Request $request)
+    {
+        $studentId = $request->input('studentId');
+        $peerId = $request->input('peerId'); // Use a unique identifier for the stream
+        $name = $request->input('name');
+
+        // Broadcast the event to notify the teacher
+        event(new TestingEvent($studentId, $peerId, $name));
+
+        return response()->json(['message' => 'Screen share started']);
+    }
+
+    public function stopScreenShare(Request $request)
+    {
+        $studentId = $request->input('studentId');
+
+        // Broadcast event untuk memberitahukan guru bahwa stream dihentikan
+        event(new TestingEvent($studentId, null, null)); // Kirimkan null jika stream dihentikan
+
+        return response()->json(['message' => 'Screen share stopped']);
     }
 }

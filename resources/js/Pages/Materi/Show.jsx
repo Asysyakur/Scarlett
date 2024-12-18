@@ -1,6 +1,6 @@
 import { useActivity } from "@/Contexts/ActivityContext";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import React, { useEffect, useState } from "react";
 
 export default function Show({ materi }) {
@@ -48,32 +48,47 @@ export default function Show({ materi }) {
     }
 
     const handlePageChange = () => {
-        if (materi.id === 1) {
-            window.location.href = "/materi/1/drag-and-drop";
-        } else {
-            window.location.href = `/materi/${materi.id + 1}`;
+        let redirectUrl = "/materi"; // Default route
+        if (materi.dnd === 1) {
+            redirectUrl = `/materi/${materi.id}/drag-and-drop`; // Set specific route if conditions match
+        } else if (materi.studikasus === 1) {
+            redirectUrl = `/materi/${materi.id}/studi-kasus`; // Set specific route if conditions match
         }
+
+        return redirectUrl;
     };
 
+    const contentWithLineBreaks = materi.content.replace(/\n/g, "<br />");
     return (
         <AuthenticatedLayout>
             <Head title={materi.title} />
             <div className="max-w-7xl mx-auto my-6 p-6 border border-amber-300 bg-white rounded-lg shadow-md">
+                {/* Back Link */}
+                <div className="mb-4">
+                    <Link
+                        href={route("materi.index")} // Adjust this route as needed
+                        className="text-amber-500 hover:text-amber-700 font-semibold"
+                    >
+                        Kembali ke Materi
+                    </Link>
+                </div>
                 <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
                     {materi.title}
                 </h1>
 
                 {/* Centering the image with 16:9 aspect ratio and responsive sizing */}
-                <div className="w-full max-w-[800px] mx-auto mb-6">
-                    <div className="relative pb-[40%] w-full rounded-md overflow-hidden">
-                        <img
-                            src={`/storage/${materi.image}`}
-                            alt={materi.title}
-                            className="absolute inset-0 w-full h-full object-cover transition-all duration-300 hover:opacity-90"
-                            style={{ maxHeight: "450px" }} // Maximum height of the image
-                        />
+                {materi.image && (
+                    <div className="w-full max-w-[800px] mx-auto mb-6">
+                        <div className="relative pb-[40%] w-full rounded-md overflow-hidden">
+                            <img
+                                src={`/storage/${materi.image}`}
+                                alt={materi.title}
+                                className="absolute inset-0 w-full h-full object-cover transition-all duration-300 hover:opacity-90"
+                                style={{ maxHeight: "450px" }} // Maximum height of the image
+                            />
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Tabs for content, video, and file */}
                 <div className="mb-4">
@@ -119,7 +134,9 @@ export default function Show({ materi }) {
                 {activeTab === "content" && (
                     <div
                         className="prose max-w-none text-gray-700 mb-6"
-                        dangerouslySetInnerHTML={{ __html: materi.content }}
+                        dangerouslySetInnerHTML={{
+                            __html: contentWithLineBreaks,
+                        }}
                     ></div>
                 )}
 
@@ -159,12 +176,12 @@ export default function Show({ materi }) {
 
                 {/* Add a button below the tabs */}
                 <div className="mt-6 flex justify-center">
-                    <button
-                        onClick={handlePageChange}
+                    <Link
+                        href={handlePageChange()}
                         className="px-8 py-3 text-white bg-amber-500 rounded-md hover:bg-amber-600 transition duration-200 ease-in-out"
                     >
                         Selanjutnya
-                    </button>
+                    </Link>
                 </div>
             </div>
         </AuthenticatedLayout>

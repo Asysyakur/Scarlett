@@ -150,7 +150,6 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 key={index}
                                 className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300"
                             >
-                                <FaCheckCircle className="text-red-700 mb-3" />
                                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                                     {feature.title}
                                 </h3>

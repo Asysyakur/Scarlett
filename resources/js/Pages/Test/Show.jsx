@@ -1,121 +1,171 @@
 import { useState, useRef, useEffect } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, Link } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
+import Peer from "peerjs";
+import axios from "axios";
+import WarnigIlu from "./assets/Warning.svg";
 import { useActivity } from "@/Contexts/ActivityContext";
 
-function TestShow({ test }) {
-    const [isRecording, setIsRecording] = useState(false);
-    const [streamLink, setStreamLink] = useState(null); // To store the stream URL
+function StudentScreenShare({ auth, test }) {
+    const [isSharing, setIsSharing] = useState(false);
     const streamRef = useRef(null);
+    const peerRef = useRef(null);
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
 
     useEffect(() => {
-        // Manually update the path when the component mounts
         changePath(`/test/${test.id}`);
-
-        // Start activity when page is loaded or path changes
         startActivity();
 
-        // Event listener to stop/resume activity on tab visibility change
         const handleVisibilityChange = () => {
-            if (document.hidden) {
-                stopActivity();
-            } else {
-                startActivity();
-            }
+            if (document.hidden) stopActivity();
+            else startActivity();
         };
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
-
         return () => {
             document.removeEventListener(
                 "visibilitychange",
                 handleVisibilityChange
             );
-            stopActivity(); // Ensure activity is stopped when component unmounts
+            stopActivity();
         };
-    }, [currentPath]); // Depend on functions and manually updating path
-    if (!test) {
-        return <div>Loading...</div>;
-    }
-    // Start screen capture
-    const startCapture = async () => {
+    }, [currentPath]);
+
+    const startScreenShare = async () => {
         try {
-            // Request permission to capture screen
             const stream = await navigator.mediaDevices.getDisplayMedia({
                 video: true,
                 audio: false,
             });
 
-            // Display the captured screen in the video element
-            streamRef.current.srcObject = stream;
-            setStreamLink(URL.createObjectURL(stream)); // Create a temporary URL for the stream
-            setIsRecording(true);
+            // Tambahkan event listener untuk menghentikan screen share saat stream berakhir
+            stream.getTracks().forEach((track) => {
+                track.onended = () => {
+                    stopScreenShare();
+                };
+            });
+
+            if (streamRef.current) {
+                streamRef.current.srcObject = stream;
+            }
+
+            const peer = new Peer();
+
+            peer.on("open", async (peerId) => {
+
+                await axios.post("/start-screen-share", {
+                    studentId: auth.user.id,
+                    name: auth.user.name,
+                    peerId,
+                });
+
+                peer.on("call", (call) => {
+
+                    if (streamRef.current) {
+                        const localStream = streamRef.current.srcObject;
+                        call.answer(localStream);
+                        call.on("stream", function (remoteStream) {
+                            const remoteVideo =
+                                document.getElementById("remote-video");
+                            if (remoteVideo) {
+                                remoteVideo.srcObject = remoteStream;
+                            }
+                        });
+                        call.on("error", (err) =>
+                            console.error("Error during call:", err)
+                        );
+                    } else {
+                        console.log(
+                            "No local stream available to answer the call."
+                        );
+                    }
+                });
+            });
+
+            peerRef.current = peer;
+            setIsSharing(true);
         } catch (err) {
-            console.error("Error starting screen capture:", err);
+            console.error("Error starting screen share:", err);
         }
     };
 
-    // Stop screen capture
-    const stopCapture = () => {
-        if (streamRef.current.srcObject) {
+    const stopScreenShare = () => {
+        if (streamRef.current?.srcObject) {
             const tracks = streamRef.current.srcObject.getTracks();
-            tracks.forEach((track) => track.stop()); // Stop all tracks
-            setStreamLink(null); // Clear the stream URL
-            setIsRecording(false);
+            tracks.forEach((track) => track.stop());
         }
+
+        if (peerRef.current) {
+            peerRef.current.destroy();
+        }
+
+        setIsSharing(false);
+
+        // Kirim notifikasi ke server bahwa screen sharing telah dihentikan
+        axios.post("/stop-screen-share", {
+            studentId: auth.user.id,
+        });
     };
-    console.log(streamLink);
+
     return (
         <AuthenticatedLayout>
-            <Head title="Test" />
-            <div className="container mx-auto">
-                {/* Button to start/stop recording */}
-                <div className="mt-4 text-center">
-                    {!isRecording ? (
-                        <button
-                            onClick={startCapture}
-                            className="px-6 py-2 bg-blue-500 text-white rounded-lg"
-                        >
-                            Mulai Rekam Layar
-                        </button>
-                    ) : (
-                        <button
-                            onClick={stopCapture}
-                            className="px-6 py-2 bg-red-500 text-white rounded-lg"
-                        >
-                            Hentikan Rekam
-                        </button>
-                    )}
-                </div>
+            <Head title="Student Screen Share" />
+            <div className="max-w-7xl mx-auto p-6 text-center">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                    {test.name}
+                </h2>
 
-                {/* Display the screen recording */}
-                <video ref={streamRef} className="video" autoPlay controls />
+                {!isSharing ? (
+                    <button
+                        onClick={startScreenShare}
+                        className="transform transition-all hover:scale-105 bg-gradient-to-br from-amber-400 to-amber-500 text-white rounded-lg hover:bg-amber-600 duration-200 w-full md:w-auto px-6 py-2 mb-8 shadow-md"
+                    >
+                        Mulai Screen Sharing
+                    </button>
+                ) : (
+                    <button
+                        onClick={stopScreenShare}
+                        className="transform transition-all hover:scale-105 bg-red-700 hover:bg-red-800 text-white px-6 py-2 rounded-lg mb-8 shadow-md"
+                    >
+                        Berhenti Screen Sharing
+                    </button>
+                )}
 
-                {test.link && (
+                {isSharing && test.link && (
                     <iframe
                         src={test.link}
-                        className=" flex w-full h-screen"
+                        className="w-full h-screen rounded-xl border border-amber-300 shadow-lg mt-6"
                         frameBorder="0"
                         allowFullScreen
                     ></iframe>
                 )}
-                {/* If screen capture is available, provide the link to view it */}
-                {streamLink && (
-                    <div className="mt-4">
-                        <h3 className="text-xl font-semibold">Lihat Stream</h3>
-                        <Link
-                            href={`/stream`} // Direct link to the stream page
-                            className="text-blue-500 hover:underline"
-                        >
-                            Klik untuk melihat stream
-                        </Link>
+
+                {!isSharing && (
+                    <div className="mt-8">
+                        <img
+                            src={WarnigIlu}
+                            alt="Test Illustration"
+                            className="mx-auto max-w-[200px] md:max-w-xs mb-4" // Reduced image size
+                        />
+                        <div className="text-gray-500 italic font-bold text-xl">
+                            Anda harus memulai screen sharing untuk mengakses
+                            test ini.
+                        </div>
                     </div>
                 )}
+
+                <div className="hidden mt-4">
+                    <video
+                        ref={streamRef}
+                        autoPlay
+                        muted
+                        className="border rounded-lg w-full h-64"
+                    ></video>
+                </div>
             </div>
         </AuthenticatedLayout>
     );
 }
 
-export default TestShow;
+export default StudentScreenShare;

@@ -12,7 +12,7 @@ class MateriSeeder extends Seeder
      */
     public function run()
     {
-        Materi::create(['title' => 'material 1', 'description' => 'This is a sample test description.', 'content' => 'content 1', 'image' => 'image 1', 'video' => 'video 1', 'file' => 'file 1', 'link' => 'https://example.com']);
-        Materi::create(['title' => 'material 2', 'description' => 'This is a sample test description.', 'content' => 'content 1', 'image' => 'image 1', 'video' => 'video 1', 'file' => 'file 1', 'link' => 'https://example.com']);
+        Materi::create(['title' => 'material 1', 'description' => 'This is a sample test description.', 'content' => 'content 1', 'image' => 'image 1', 'video' => 'video 1', 'file' => 'file 1']);
+        Materi::create(['title' => 'material 2', 'description' => 'This is a sample test description.', 'content' => 'content 1', 'image' => 'image 1', 'video' => 'video 1', 'file' => 'file 1']);
     }
 }

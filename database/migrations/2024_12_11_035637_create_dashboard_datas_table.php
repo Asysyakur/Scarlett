@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('erd_tables', function (Blueprint $table) {
+        Schema::create('dashboard_datas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('materi_id')->constrained('materis')->onDelete('cascade');
-            $table->string('name');
+            $table->string('link_presensi');
+            $table->text('capaian_pembelajaran');
+            $table->text('tujuan_pembelajaran');
+            $table->text('identitas_pembelajaran');
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('erd_tables');
+        Schema::dropIfExists('dashboard_datas');
     }
 };

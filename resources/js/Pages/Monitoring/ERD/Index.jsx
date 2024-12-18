@@ -2,27 +2,25 @@ import React, { useState, useEffect } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
 
-const MonitoringPage = ({ activities }) => {
+const ERDIndex = ({ usersInErd, materials }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState("");
-    const [filteredActivities, setFilteredActivities] = useState([]);
-    const activitiesPerPage = 10;
-
+    const [filteredUsers, setFilteredUsers] = useState([]);
+    const usersPerPage = 10;
     useEffect(() => {
-        const filtered = Object.values(activities).filter((activity) =>
-            activity.user_name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        setFilteredActivities(filtered);
-    }, [searchQuery, activities]);
+        if (Array.isArray(usersInErd)) {
+            const filtered = usersInErd.filter((user) =>
+                user.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setFilteredUsers(filtered);
+        }
+    }, [searchQuery, usersInErd]);
 
-    const indexOfLastActivity = currentPage * activitiesPerPage;
-    const indexOfFirstActivity = indexOfLastActivity - activitiesPerPage;
-    const currentActivities = filteredActivities.slice(
-        indexOfFirstActivity,
-        indexOfLastActivity
-    );
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-    const totalPages = Math.ceil(filteredActivities.length / activitiesPerPage);
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
     const handleNextPage = () => {
         if (currentPage < totalPages) {
@@ -37,8 +35,8 @@ const MonitoringPage = ({ activities }) => {
     };
 
     return (
-        <AuthenticatedLayout header={<>Monitoring Aktivitas Siswa</>}>
-            <Head title="Monitoring" />
+        <AuthenticatedLayout header={<>Monitoring ERD Users</>}>
+            <Head title="ERD Monitoring" />
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex justify-between items-center">
                     {/* Button to go back */}
@@ -63,13 +61,16 @@ const MonitoringPage = ({ activities }) => {
                         <thead className="bg-red-500 text-amber-200">
                             <tr>
                                 <th className="border border-red-500 px-4 py-2 text-left">
-                                    User ID
+                                    No
                                 </th>
                                 <th className="border border-red-500 px-4 py-2 text-left">
                                     Nama
                                 </th>
                                 <th className="border border-red-500 px-4 py-2 text-left">
-                                    Total Durasi
+                                    Materi Id
+                                </th>
+                                <th className="border border-red-500 px-4 py-2 text-left">
+                                    Nama Materi
                                 </th>
                                 <th className="border border-red-500 px-4 py-2 text-left">
                                     Aksi
@@ -77,7 +78,7 @@ const MonitoringPage = ({ activities }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentActivities.map((activity, index) => (
+                            {currentUsers.map((user, index) => (
                                 <tr
                                     key={index}
                                     className={
@@ -90,32 +91,20 @@ const MonitoringPage = ({ activities }) => {
                                         {index + 1}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
-                                        {activity.user_name}
+                                        {user.name}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
-                                        {activity.total_duration * -1 < 60
-                                            ? `${
-                                                  activity.total_duration * -1
-                                              } detik`
-                                            : activity.total_duration * -1 <
-                                              3600
-                                            ? `${(
-                                                  (activity.total_duration *
-                                                      -1) /
-                                                  60
-                                              ).toFixed(2)} menit`
-                                            : `${(
-                                                  (activity.total_duration *
-                                                      -1) /
-                                                  3600
-                                              ).toFixed(2)} jam`}
+                                        {user.materi.id}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2">
+                                        {user.materi.title}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
                                         <Link
-                                            href={`/monitoring/aktivitas-siswa/${activity.user_id}`}
+                                            href={`/monitoring/erd/${user.id}`}
                                             className="bg-blue-500 text-white px-3 py-1 rounded shadow"
                                         >
-                                            Detail
+                                            Lihat
                                         </Link>
                                     </td>
                                 </tr>
@@ -148,4 +137,4 @@ const MonitoringPage = ({ activities }) => {
     );
 };
 
-export default MonitoringPage;
+export default ERDIndex;

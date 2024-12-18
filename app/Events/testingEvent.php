@@ -1,7 +1,5 @@
 <?php
 
-// app/Events/TestingEvent.php
-
 namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
@@ -12,41 +10,35 @@ use Illuminate\Queue\SerializesModels;
 
 class TestingEvent implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    public $studentId;
+    public $peerId;
+    public $name;
 
-    public $videoData;
-    public $teacherId;
-
-    /**
-     * Create a new event instance.
-     */
-    public function __construct($videoData, $teacherId)
+    public function __construct($studentId, $peerId, $name)
     {
-        $this->videoData = $videoData; // Base64 video data
-        $this->teacherId = $teacherId;
+        $this->studentId = $studentId;
+        $this->peerId = $peerId;
+        $this->name = $name;
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
     public function broadcastOn(): array
     {
         return [
-            new Channel('testChannel.' . $this->teacherId), // Send to teacher's channel
+            new Channel('test-monitoring'),
         ];
     }
 
-    /**
-     * Broadcast the data.
-     *
-     * @return array
-     */
     public function broadcastWith(): array
     {
         return [
-            'videoData' => $this->videoData, // Send base64 video data
+            'studentId' => $this->studentId,
+            'peerId' => $this->peerId,
+            'name' => $this->name,
         ];
+    }
+
+    public function broadcastAs()
+    {
+        return 'screen-share-started';  // Nama event yang dipancarkan
     }
 }

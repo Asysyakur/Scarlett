@@ -1,61 +1,306 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+    useState,
+    useEffect,
+    useRef,
+    useCallback,
+    useMemo,
+} from "react";
 import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
+import Swal from "sweetalert2";
+import { useActivity } from "@/Contexts/ActivityContext";
 
-const GameBoard = ({ tables, attributes, relations }) => {
+const GameBoard = ({
+    tables,
+    attributes,
+    relations,
+    auth,
+    materi,
+    erdSave,
+}) => {
     const [tableData, setTableData] = useState(
-        tables.map((table) => ({
-            ...table,
-            ref: useRef(null),
-            attributes: table.attributes.map((attr) => ({
-                ...attr,
-                isPrimaryKey: false,
-                isForeignKey: false,
-            })),
-        })) // Menambahkan ref dan status primary key/foreign key
+        tables.map((table) => {
+            // Find the saved ERD data for the current table based on materi_id and table_id
+            const savedAttributes =
+                erdSave.find(
+                    (erd) =>
+                        erd.table_id === table.id && erd.materi_id === materi.id
+                )?.attributes || []; // Default to an empty array if no match
+
+            return {
+                ...table,
+                ref: useRef(null),
+                // Map over the saved attributes and add isPrimaryKey and isForeignKey
+                attributes: savedAttributes.map((attr) => ({
+                    ...attr,
+                    isPrimaryKey: attr.isPrimaryKey || false, // Add default false if not defined
+                    isForeignKey: attr.isForeignKey || false, // Add default false if not defined
+                })),
+            };
+        })
     );
+    const [isEditing, setIsEditing] = useState(false);
+    const [modalType, setModalType] = useState(null);
     const [relationsData, setRelationsData] = useState(relations);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newTables, setNewTables] = useState([{ name: "", id: "" }]);
+    const [newAttributes, setNewAttributes] = useState([{ label: "", id: "" }]);
+    const [newRelations, setNewRelations] = useState([
+        { from: "", to: "", type: "", id: "" }, // Initialize with empty values for each field
+    ]);
+    
+    const { startActivity, stopActivity, currentPath, changePath } =
+        useActivity();
 
-    const attributesPool = attributes.map((attr) => ({
-        id: attr.id,
-        label: attr.label,
-    }));
+    useEffect(() => {
+        changePath(`/materi/${materi.id}/drag-and-drop`);
+        startActivity();
 
-    const handleDragEnd = (event) => {
-        const { active, over } = event;
+        const handleVisibilityChange = () => {
+            if (document.hidden) stopActivity();
+            else startActivity();
+        };
 
-        if (over) {
-            const attribute = attributesPool.find(
-                (attr) => attr.id === active.id
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
             );
+            stopActivity();
+        };
+    }, [currentPath]);
 
-            if (attribute) {
-                setTableData((prevTables) =>
-                    prevTables.map((table) => {
-                        if (table.id === parseInt(over.id)) {
-                            if (!table.attributes.includes(attribute.label)) {
-                                return {
-                                    ...table,
-                                    attributes: [
-                                        ...table.attributes,
-                                        { label: attribute.label, isPrimaryKey: false, isForeignKey: false },
-                                    ],
-                                };
-                            }
-                        }
-                        return table;
-                    })
+    const usedAttributes = tableData.flatMap((table) =>
+        table.attributes.map((attr) => attr.id)
+    );
+    const availableAttributes = useMemo(() => {
+        return attributes
+            .filter((attr) => !usedAttributes.includes(attr.id))
+            .map((attr) => ({ id: attr.id, label: attr.label }));
+    }, [attributes, usedAttributes]);
+
+    const modalRef = useRef();
+    useEffect(() => {
+        const handleOutsideClick = (e) => {
+            if (
+                modalRef.current &&
+                !modalRef.current.contains(e.target) &&
+                !document.querySelector(".swal2-container")
+            ) {
+                setIsModalOpen(false);
+                setIsEditing(false);
+                setNewAttributes([{ label: "", id: "" }]);
+                setNewTables([{ name: "", id: "" }]);
+                setNewRelations([{ from: "", to: "", type: "", id: "" }]);
+            }
+        };
+
+        document.addEventListener("mousedown", handleOutsideClick);
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+        };
+    }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        let url = "";
+        let payload = [];
+
+        try {
+            // Tentukan endpoint dan data yang dikirim sesuai dengan modalType dan isEditing
+            switch (modalType) {
+                case "table":
+                    // Jika sedang dalam mode edit, kirim data dengan ID tabel untuk update
+                    if (isEditing) {
+                        payload = newTables
+                            .filter(
+                                (table) =>
+                                    table.name && table.name.trim() !== ""
+                            )
+                            .map((table) => ({
+                                id: table.id, // Pastikan untuk mengirim ID saat edit
+                                name: table.name.trim(),
+                            }));
+                    } else {
+                        // Jika tidak dalam mode edit, buat data baru
+                        payload = newTables
+                            .filter(
+                                (table) =>
+                                    table.name && table.name.trim() !== ""
+                            )
+                            .map((table) => ({
+                                id: table.id, // Pastikan untuk mengirim ID saat edit
+                                name: table.name.trim(),
+                            }));
+                    }
+                    url = `/materi/${materi.id}/drag-and-drop/table`;
+                    break;
+
+                case "relation":
+                    if (isEditing) {
+                        // Mengirim relasi dengan ID jika dalam mode edit
+                        payload = newRelations
+                            .filter(
+                                (relation) =>
+                                    relation.from &&
+                                    relation.to &&
+                                    relation.type &&
+                                    relation.from !== "" &&
+                                    relation.to !== "" &&
+                                    relation.type !== ""
+                            )
+                            .map((relation) => ({
+                                id: relation.id, // Mengirim ID saat mode edit
+                                from: relation.from, // Kirim ID table untuk 'from'
+                                to: relation.to, // Kirim ID table untuk 'to'
+                                type: relation.type, // Tipe relasi
+                            }));
+                    } else {
+                        // Kirim data relasi baru
+                        payload = newRelations
+                            .filter(
+                                (relation) =>
+                                    relation.from &&
+                                    relation.to &&
+                                    relation.type &&
+                                    relation.from !== "" &&
+                                    relation.to !== "" &&
+                                    relation.type !== ""
+                            )
+                            .map((relation) => ({
+                                id: relation.id,
+                                from: relation.from, // Kirim ID table untuk 'from'
+                                to: relation.to, // Kirim ID table untuk 'to'
+                                type: relation.type, // Tipe relasi
+                            }));
+                    }
+                    url = `/materi/${materi.id}/drag-and-drop/relation`;
+                    break;
+
+                case "attribute":
+                    if (isEditing) {
+                        // Mengirim atribut dengan ID jika dalam mode edit
+                        payload = newAttributes
+                            .filter(
+                                (attr) => attr.label && attr.label.trim() !== ""
+                            )
+                            .map((attr) => ({
+                                id: attr.id, // Mengirim ID saat mode edit
+                                label: attr.label.trim(),
+                            }));
+                    } else {
+                        // Kirim data atribut baru
+                        payload = newAttributes
+                            .filter(
+                                (attr) => attr.label && attr.label.trim() !== ""
+                            )
+                            .map((attr) => ({
+                                id: attr.id,
+                                label: attr.label.trim(),
+                            }));
+                    }
+                    url = `/materi/${materi.id}/drag-and-drop/attribute`;
+                    break;
+
+                default:
+                    console.error("Modal type tidak dikenali:", modalType);
+                    return;
+            }
+
+            // Jika payload kosong, beri tahu pengguna
+            if (payload.length === 0) {
+                console.warn("Data kosong. Tidak ada yang dikirim ke server.");
+                alert("Data kosong. Pastikan semua input sudah diisi.");
+                return;
+            }
+
+            // Kirim data ke server
+            const response = await axios.post(url, payload);
+
+            // Show success alert
+            await Swal.fire({
+                icon: "success",
+                title: "Data Submitted Successfully!",
+                text: "Your data has been successfully submitted.",
+                timer: 1000, // Dismiss after 3 seconds
+                showConfirmButton: false,
+            });
+
+            // Reset the modal and form states
+            setIsModalOpen(false);
+            setIsEditing(false);
+            setNewAttributes([{ label: "", id: "" }]);
+            setNewTables([{ name: "", id: "" }]);
+            setNewRelations([{ from: "", to: "", type: "", id: "" }]);
+
+            // Reload the page after SweetAlert has been dismissed
+            window.location.reload();
+        } catch (error) {
+            console.error("Terjadi kesalahan saat mengirim data:", error);
+            if (error.response) {
+                console.error("Respon server:", error.response.data);
+                alert(`Error dari server: ${error.response.data.message}`);
+            } else if (error.request) {
+                console.error(
+                    "Permintaan tidak mendapat respon:",
+                    error.request
                 );
+                alert("Server tidak merespon. Silakan coba lagi nanti.");
+            } else {
+                console.error("Error saat mengatur permintaan:", error.message);
+                alert(`Kesalahan: ${error.message}`);
             }
         }
     };
+
+    const handleDragEnd = useCallback(
+        (event) => {
+            const { active, over } = event;
+
+            if (over) {
+                const attribute = availableAttributes.find(
+                    (attr) => attr.id === active.id
+                );
+
+                if (attribute) {
+                    setTableData((prevTables) =>
+                        prevTables.map((table) => {
+                            if (table.id === parseInt(over.id)) {
+                                if (
+                                    !table.attributes.some(
+                                        (attr) => attr.label === attribute.label
+                                    )
+                                ) {
+                                    return {
+                                        ...table,
+                                        attributes: [
+                                            ...table.attributes,
+                                            {
+                                                id: attribute.id,
+                                                label: attribute.label,
+                                                isPrimaryKey: false,
+                                                isForeignKey: false,
+                                            },
+                                        ],
+                                    };
+                                }
+                            }
+                            return table;
+                        })
+                    );
+                }
+            }
+        },
+        [availableAttributes]
+    );
 
     const DragItem = ({ id, label }) => {
         const { attributes, listeners, setNodeRef, transform } = useDraggable({
             id,
         });
-
         const style = {
             transform: `translate3d(${transform?.x || 0}px, ${
                 transform?.y || 0
@@ -68,9 +313,12 @@ const GameBoard = ({ tables, attributes, relations }) => {
                 style={style}
                 {...attributes}
                 {...listeners}
-                className="bg-green-300 px-4 py-2 rounded shadow cursor-pointer mb-2"
+                className="bg-green-300 px-4 py-2 rounded shadow cursor-pointer mb-2 hover:scale-105 active:scale-95"
+                aria-label={`Drag ${label} to table`}
             >
-                {label}
+                <span className="block w-3/4 break-words text-left">
+                    {label}
+                </span>
             </div>
         );
     };
@@ -80,61 +328,66 @@ const GameBoard = ({ tables, attributes, relations }) => {
 
         const handleReset = () => {
             setTableData((prevTables) =>
-                prevTables.map((t) => {
-                    if (t.id === table.id) {
-                        return { ...t, attributes: [] }; // Reset attributes tabel
-                    }
-                    return t;
-                })
+                prevTables.map((t) =>
+                    t.id === table.id ? { ...t, attributes: [] } : t
+                )
             );
         };
 
-        const togglePrimaryKey = (attributeLabel) => {
-            setTableData((prevTables) =>
-                prevTables.map((t) => {
-                    if (t.id === table.id) {
-                        return {
-                            ...t,
-                            attributes: t.attributes.map((attr) =>
-                                attr.label === attributeLabel
-                                    ? { ...attr, isPrimaryKey: !attr.isPrimaryKey }
-                                    : attr
-                            ),
-                        };
-                    }
-                    return t;
-                })
-            );
-        };
+        const togglePrimaryKey = useCallback(
+            (attributeLabel) => {
+                setTableData((prevTables) =>
+                    prevTables.map((t) =>
+                        t.id === table.id
+                            ? {
+                                  ...t,
+                                  attributes: t.attributes.map((attr) => ({
+                                      ...attr,
+                                      isPrimaryKey:
+                                          attr.label === attributeLabel, // Hanya satu PK
+                                  })),
+                              }
+                            : t
+                    )
+                );
+            },
+            [table.id]
+        );
 
-        const toggleForeignKey = (attributeLabel) => {
-            setTableData((prevTables) =>
-                prevTables.map((t) => {
-                    if (t.id === table.id) {
-                        return {
-                            ...t,
-                            attributes: t.attributes.map((attr) =>
-                                attr.label === attributeLabel
-                                    ? { ...attr, isForeignKey: !attr.isForeignKey }
-                                    : attr
-                            ),
-                        };
-                    }
-                    return t;
-                })
-            );
-        };
+        const toggleForeignKey = useCallback(
+            (attributeLabel) => {
+                setTableData((prevTables) =>
+                    prevTables.map((t) =>
+                        t.id === table.id
+                            ? {
+                                  ...t,
+                                  attributes: t.attributes.map((attr) =>
+                                      attr.label === attributeLabel
+                                          ? {
+                                                ...attr,
+                                                isForeignKey:
+                                                    !attr.isForeignKey,
+                                            }
+                                          : attr
+                                  ),
+                              }
+                            : t
+                    )
+                );
+            },
+            [table.id]
+        );
 
         useEffect(() => {
             if (table.ref?.current) {
-                setNodeRef(table.ref.current); // Menetapkan ref ke elemen tabel
+                setNodeRef(table.ref.current);
             }
         }, [setNodeRef, table.ref]);
 
         return (
             <div
                 ref={table.ref}
-                className="border p-4 rounded-lg bg-gray-100 shadow-md min-h-[100px]"
+                className="relative z-20 border p-4 rounded-lg bg-gray-100 shadow-md min-h-[100px] transition-all transform hover:scale-105"
             >
                 <div className="flex justify-between items-center">
                     <h3 className="font-bold mb-2">{table.name}</h3>
@@ -146,20 +399,23 @@ const GameBoard = ({ tables, attributes, relations }) => {
                     </button>
                 </div>
                 <ul>
-                    {table.attributes.map((attr, index) => (
+                    {table.attributes?.map((attr, index) => (
                         <li
                             key={index}
-                            className="bg-blue-100 px-2 py-1 rounded my-1"
+                            className="bg-blue-100 px-4 py-2 rounded my-1 flex justify-between items-center"
                         >
-                            {attr.label}
-                            <div className="flex gap-2 mt-2">
+                            <span className="block w-3/4 break-words text-left">
+                                {attr.label}
+                            </span>
+                            <div className="flex gap-2">
                                 <button
                                     onClick={() => togglePrimaryKey(attr.label)}
                                     className={`${
                                         attr.isPrimaryKey
                                             ? "bg-blue-500"
-                                            : "bg-blue-300"
+                                            : "bg-gray-300"
                                     } text-white px-2 py-1 rounded`}
+                                    aria-label={`Toggle Primary Key for ${attr.label}`}
                                 >
                                     PK
                                 </button>
@@ -168,8 +424,9 @@ const GameBoard = ({ tables, attributes, relations }) => {
                                     className={`${
                                         attr.isForeignKey
                                             ? "bg-yellow-500"
-                                            : "bg-yellow-300"
+                                            : "bg-gray-300"
                                     } text-white px-2 py-1 rounded`}
+                                    aria-label={`Toggle Foreign Key for ${attr.label}`}
                                 >
                                     FK
                                 </button>
@@ -179,6 +436,16 @@ const GameBoard = ({ tables, attributes, relations }) => {
                 </ul>
             </div>
         );
+    };
+
+    const handleCloseModal = () => {
+        return () => {
+            setIsModalOpen(false);
+            setIsEditing(false);
+            setNewAttributes([{ label: "", id: "" }]);
+            setNewTables([{ name: "", id: "" }]);
+            setNewRelations([{ from: "", to: "", type: "", id: "" }]);
+        };
     };
 
     const Connections = ({ relations, tables }) => {
@@ -200,23 +467,56 @@ const GameBoard = ({ tables, attributes, relations }) => {
 
                     let x1, y1, x2, y2;
 
-                    if (relation.to < relation.from) {
-                        x1 = fromRect.left;
-                        y1 = fromRect.top + fromRect.height / 2;
-                        x2 = toRect.right;
-                        y2 = toRect.top + toRect.height / 2;
+                    // Hitung posisi grid dari tabel
+                    const fromTablePosition = tables.indexOf(fromTable);
+                    const toTablePosition = tables.indexOf(toTable);
+
+                    // Tentukan apakah posisi dari tabel ada di tengah (2, 5, 8, dst)
+                    const isFromTableCenter = fromTablePosition % 3 === 1; // Kolom tengah
+                    const isToTableCenter = toTablePosition % 3 === 1; // Kolom tengah
+
+                    // Tentukan dari mana garis akan keluar (kiri, kanan, atau tengah) pada fromTable
+                    if (isFromTableCenter) {
+                        if (toTablePosition > fromTablePosition) {
+                            x1 = fromRect.right; // Jika toTable ada di kanan, keluar dari kanan
+                        } else {
+                            x1 = fromRect.left; // Jika toTable ada di kiri, keluar dari kiri
+                        }
+                    } else if (fromTablePosition % 3 === 0) {
+                        // Jika fromTable ada di kolom kiri
+                        x1 = fromRect.right; // Selalu keluar dari kanan
                     } else {
-                        x1 = fromRect.right;
-                        y1 = fromRect.top + fromRect.height / 2;
-                        x2 = toRect.left;
-                        y2 = toRect.top + toRect.height / 2;
+                        // Jika fromTable ada di kolom kanan
+                        x1 = fromRect.left; // Selalu keluar dari kiri
                     }
 
+                    // Tentukan dari mana garis akan masuk (kiri, kanan, atau tengah) pada toTable
+                    if (isToTableCenter) {
+                        if (toTablePosition > fromTablePosition) {
+                            x2 = toRect.left; // Jika fromTable ada di kiri, masuk dari kiri
+                        } else {
+                            x2 = toRect.right; // Jika fromTable ada di kanan, masuk dari kanan
+                        }
+                    } else if (toTablePosition % 3 === 0) {
+                        // Jika toTable ada di kolom kiri
+                        x2 = toRect.right; // Selalu masuk dari kanan
+                    } else {
+                        // Jika toTable ada di kolom kanan
+                        x2 = toRect.left; // Selalu masuk dari kiri
+                    }
+
+                    // Atur y1 dan y2 agar berada di tengah tinggi dari tabel
+                    y1 = fromRect.top + fromRect.height / 2;
+                    y2 = toRect.top + toRect.height / 2;
+
+                    // Buat kurva dari x1, y1 ke x2, y2
                     const middleX = (x1 + x2) / 2;
                     const offset = 20 * relations.indexOf(relation);
 
                     return {
-                        path: `M ${x1},${y1 + offset} H ${middleX} V ${y2 + offset} H ${x2}`,
+                        path: `M ${x1},${y1 + offset} H ${middleX} V ${
+                            y2 + offset
+                        } H ${x2}`,
                         labelX: middleX,
                         labelY: y2 + offset,
                         type: relation.type,
@@ -224,11 +524,12 @@ const GameBoard = ({ tables, attributes, relations }) => {
                 }
                 return null;
             });
+
             setLines(updatedLines.filter((line) => line !== null));
         }, [relations, tables]);
-
+        
         return (
-            <svg className="absolute inset-0 pointer-events-none z-50 w-full h-full">
+            <svg className="absolute inset-0 pointer-events-none z-30 w-full h-full">
                 {lines.map((line, index) => (
                     <React.Fragment key={index}>
                         <path
@@ -265,36 +566,332 @@ const GameBoard = ({ tables, attributes, relations }) => {
         );
     };
 
+    const addNewTableField = () => {
+        setNewTables([...newTables, { name: "", id: "" }]);
+    };
+
+    const addNewRelationField = () => {
+        setNewRelations([
+            ...newRelations,
+            { from: "", to: "", type: "", id: "" },
+        ]);
+    };
+
+    const addAttributeField = () => {
+        setNewAttributes([...newAttributes, { label: "", id: "" }]);
+    };
+
+    const handleTableNameChange = (index, value) => {
+        const updatedTables = [...newTables];
+        updatedTables[index].name = value;
+        setNewTables(updatedTables);
+    };
+
+    const handleAttributeNameChange = (index, value) => {
+        const updatedAttributes = [...newAttributes];
+        updatedAttributes[index].label = value;
+        setNewAttributes(updatedAttributes); // Update the specific attribute
+    };
+
+    const removeAttributeField = async (index, id) => {
+        if (isEditing) {
+            Swal.fire({
+                title: "Apakah Anda yakin?",
+                text: "Data ini akan dihapus secara permanen!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#f59e0b",
+                confirmButtonText: "Ya, hapus!",
+                cancelButtonText: "Batal",
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await axios.delete(
+                            `/materi/drag-and-drop/attribute/${id}`
+                        );
+                        setNewAttributes(
+                            newAttributes.filter(
+                                (_, attrIndex) => attrIndex !== index
+                            )
+                        );
+                        Swal.fire(
+                            "Berhasil!",
+                            "Data berhasil dihapus.",
+                            "success"
+                        );
+                    } catch (error) {
+                        console.error("Error saat menghapus item: ", error);
+                        Swal.fire(
+                            "Gagal!",
+                            "Terjadi kesalahan saat menghapus data.",
+                            "error"
+                        );
+                    }
+                }
+            });
+        } else {
+            setNewAttributes(
+                newAttributes.filter((_, attrIndex) => attrIndex !== index)
+            );
+        }
+    };
+
+    const removeRelationField = async (index, id) => {
+        if (isEditing) {
+            Swal.fire({
+                title: "Apakah Anda yakin?",
+                text: "Data ini akan dihapus secara permanen!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#f59e0b",
+                confirmButtonText: "Ya, hapus!",
+                cancelButtonText: "Batal",
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await axios.delete(
+                            `/materi/drag-and-drop/relation/${id}`
+                        );
+                        setNewRelations(
+                            newRelations.filter(
+                                (_, relatIndesx) => relatIndesx !== index
+                            )
+                        );
+                        Swal.fire(
+                            "Berhasil!",
+                            "Data berhasil dihapus.",
+                            "success"
+                        );
+                    } catch (error) {
+                        console.error("Error saat menghapus item: ", error);
+                        Swal.fire(
+                            "Gagal!",
+                            "Terjadi kesalahan saat menghapus data.",
+                            "error"
+                        );
+                    }
+                }
+            });
+        } else {
+            setNewRelations(
+                newRelations.filter((_, relatIndesx) => relatIndesx !== index)
+            );
+        }
+    };
+
+    const removeTableField = async (index, id) => {
+        if (isEditing) {
+            Swal.fire({
+                title: "Apakah Anda yakin?",
+                text: "Data ini akan dihapus secara permanen!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#f59e0b",
+                confirmButtonText: "Ya, hapus!",
+                cancelButtonText: "Batal",
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await axios.delete(`/materi/drag-and-drop/table/${id}`);
+                        setNewTables(
+                            newTables.filter(
+                                (_, tableIndex) => tableIndex !== index
+                            )
+                        );
+                        Swal.fire(
+                            "Berhasil!",
+                            "Data berhasil dihapus.",
+                            "success"
+                        );
+                    } catch (error) {
+                        console.error("Error saat menghapus item: ", error);
+                        Swal.fire(
+                            "Gagal!",
+                            "Terjadi kesalahan saat menghapus data.",
+                            "error"
+                        );
+                    }
+                }
+            });
+        } else {
+            setNewTables(
+                newTables.filter((_, tableIndex) => tableIndex !== index)
+            );
+        }
+    };
+
+    const handleRelationChange = (index, field, value) => {
+        const updatedRelations = [...newRelations];
+        updatedRelations[index][field] = value;
+        setNewRelations(updatedRelations);
+    };
+
+    const handleAddTable = () => {
+        setModalType("table");
+        setIsModalOpen(true);
+    };
+
+    const handleEditTable = () => {
+        setModalType("table");
+        setNewTables(tables);
+        setIsModalOpen(true);
+        setIsEditing(true);
+    };
+
+    const handleAddRelation = () => {
+        setModalType("relation");
+        setIsModalOpen(true);
+    };
+
+    const handleEditRelation = () => {
+        setModalType("relation");
+        setNewRelations(relations);
+        setIsModalOpen(true);
+        setIsEditing(true);
+    };
+
+    const handleAddAttribute = () => {
+        setModalType("attribute");
+        setIsModalOpen(true);
+    };
+
+    const handleEditAttribute = () => {
+        setModalType("attribute");
+        setNewAttributes(attributes);
+        setIsModalOpen(true);
+        setIsEditing(true);
+    };
+
+        const handleSave = async () => {
+    
+        try {
+            // Prepare payload with all tables data
+            const payload = tableData.map((table) => ({
+                materi_id: table.materi_id,
+                table_id: table.id,
+                user_id: auth.user.id,
+                attributes: table.attributes, // Assuming attributes is an array
+            }));
+    
+            // Example: Making an API call to save the table data
+            const response = await axios.post(
+                "/materi/drag-and-drop/save",
+                payload
+            );
+    
+            // Check if the response is successful
+            if (response.status === 200) {
+                // Show success alert
+                await Swal.fire({
+                    icon: "success",
+                    title: "Berhasil!",
+                    text: "ERDmu berhasil disimpan.",
+                    timer: 2000, // Dismiss after 2 seconds
+                    showConfirmButton: false,
+                });
+            }
+        } catch (error) {
+            // Handle errors
+            console.error("Error saving data:", error);
+            await Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Ada kesalahan saat menyimpan data. silakan coba lagi.",
+                timer: 2000, // Dismiss after 2 seconds
+                showConfirmButton: false,
+            });
+        }
+    };
+
     return (
         <AuthenticatedLayout header={<>Drag and drop</>}>
             <Head title="Drag and Drop" />
-            <div className="max-w-7xl mx-auto p-6">
+            <div className="max-w-7xl mx-auto px-6">
                 <DndContext onDragEnd={handleDragEnd}>
-                    <div className="flex flex-col gap-4">
-                        <div
-                            className={`grid gap-24 ${
-                                tableData.length === 1
-                                    ? "grid-cols-1"
-                                    : tableData.length === 2
-                                    ? "grid-cols-2"
-                                    : tableData.length === 3
-                                    ? "grid-cols-3"
-                                    : tableData.length === 4
-                                    ? "grid-cols-4"
-                                    : "grid-cols-5"
-                            }`}
-                        >
+                    {auth.user?.role_id === 1 && (
+                        <div className="flex justify-between">
+                            <div className="flex gap-4 mb-4">
+                                <button
+                                    onClick={() => handleAddTable()}
+                                    className="bg-purple-500 text-white px-4 py-2 rounded"
+                                >
+                                    Tambah Tabel
+                                </button>
+                                <button
+                                    onClick={() => handleAddRelation()}
+                                    className="bg-purple-500 text-white px-4 py-2 rounded"
+                                >
+                                    Tambah Relasi
+                                </button>
+                                <button
+                                    onClick={() => handleAddAttribute()}
+                                    className="bg-purple-500 text-white px-4 py-2 rounded"
+                                >
+                                    Tambah attribute
+                                </button>
+                            </div>
+                            <div className="flex gap-4 mb-4">
+                                <button
+                                    onClick={() => handleEditTable()}
+                                    className="bg-purple-500 text-white px-4 py-2 rounded"
+                                >
+                                    Edit Tabel
+                                </button>
+                                <button
+                                    onClick={() => handleEditRelation()}
+                                    className="bg-purple-500 text-white px-4 py-2 rounded"
+                                >
+                                    Edit Relasi
+                                </button>
+                                <button
+                                    onClick={() => handleEditAttribute()}
+                                    className="bg-purple-500 text-white px-4 py-2 rounded"
+                                >
+                                    Edit attribute
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    <div className="w-full mb-4 justify-between flex">
+                        <div className="mb-4">
+                            <Link
+                                href={route("materi.index")} // Adjust this route as needed
+                                className="text-amber-500 hover:text-amber-700 font-semibold"
+                            >
+                                Kembali ke Materi
+                            </Link>
+                        </div>
+                        <div className="flex gap-4 items-center">
+                            <button
+                                onClick={() => handleSave()}
+                                className="bg-green-500 hover:bg-green-700 transition-all ease-in-out duration-200 text-white px-4 py-2 font-semibold rounded "
+                            >
+                                Simpan
+                            </button>
+                            <Link
+                                href={`/materi/${materi.id}/studi-kasus`} // Adjust this route as needed
+                                className="text-white hover:bg-amber-700 bg-amber-500 transition-all ease-in-out duration-200 font-semibold px-4 py-2 rounded"
+                            >
+                                Studi Kasus
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-6">
+                        <div className={`grid gap-24 grid-cols-3`}>
                             {tableData.map((table) => (
                                 <DroppableTable key={table.id} table={table} />
                             ))}
                         </div>
 
                         <div className="w-full flex justify-center">
-                            <div className="w-4/12 justify-center border p-4 bg-gray-50 rounded shadow">
+                            <div className="w-full md:w-1/4 justify-center border p-4 bg-gray-50 rounded shadow z-50">
                                 <h3 className="font-bold mb-2">
                                     Available Attributes
                                 </h3>
-                                {attributesPool.map((attr) => (
+                                {availableAttributes.map((attr) => (
                                     <DragItem
                                         key={attr.id}
                                         id={attr.id}
@@ -306,6 +903,292 @@ const GameBoard = ({ tables, attributes, relations }) => {
                     </div>
 
                     <Connections relations={relationsData} tables={tableData} />
+                    {/* Modal for adding/editing materi */}
+                    {isModalOpen && (
+                        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+                            <div
+                                ref={modalRef}
+                                className="bg-white p-6 z-50 rounded-lg shadow-lg w-full max-w-lg"
+                            >
+                                <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                                    {isEditing ? "Edit " : "Tambah "}
+                                    {modalType === "table"
+                                        ? "Tabel"
+                                        : modalType === "attribute"
+                                        ? "Attribute"
+                                        : "Relasi"}
+                                </h3>
+
+                                <form
+                                    onSubmit={handleSubmit}
+                                    className="space-y-4 "
+                                >
+                                    {modalType === "table" && (
+                                        <div className="overflow-auto max-h-96">
+                                            {newTables.map((table, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center "
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Nama Tabel"
+                                                        className="w-full border rounded p-2 mb-2"
+                                                        value={table.name}
+                                                        onChange={(e) =>
+                                                            handleTableNameChange(
+                                                                index,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                    {newTables.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                removeTableField(
+                                                                    index,
+                                                                    table.id
+                                                                )
+                                                            } // Pastikan fungsinya benar
+                                                            className="ml-2 text-red-500 font-bold"
+                                                        >
+                                                            X
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={addNewTableField}
+                                                className="bg-blue-500 text-white px-4 py-2 rounded"
+                                            >
+                                                Tambah Tabel Baru
+                                            </button>
+                                        </div>
+                                    )}
+                                    {modalType === "attribute" && (
+                                        <div className="overflow-auto max-h-96">
+                                            {newAttributes.map(
+                                                (attr, attrIndex) => (
+                                                    <div
+                                                        key={attrIndex}
+                                                        className="flex items-center mb-2"
+                                                    >
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Nama Atribut"
+                                                            className="w-full border rounded p-2"
+                                                            value={attr.label} // Display attribute name
+                                                            onChange={(e) =>
+                                                                handleAttributeNameChange(
+                                                                    attrIndex,
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            } // Handle attribute name change
+                                                        />
+                                                        {/* Remove button with 'X' */}
+                                                        {newAttributes.length >
+                                                            1 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    removeAttributeField(
+                                                                        attrIndex,
+                                                                        attr.id
+                                                                    )
+                                                                } // Remove the attribute
+                                                                className="ml-2 text-red-500"
+                                                            >
+                                                                X
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )
+                                            )}
+
+                                            <button
+                                                type="button"
+                                                onClick={addAttributeField} // Add a new attribute field
+                                                className="bg-green-500 text-white px-4 py-2 rounded"
+                                            >
+                                                Tambah Atribut
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {modalType === "relation" && (
+                                        <div className="overflow-auto max-h-96">
+                                            {newRelations.map(
+                                                (relation, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center mb-2"
+                                                    >
+                                                        <div className="flex-1">
+                                                            <select
+                                                                value={
+                                                                    relation.from
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleRelationChange(
+                                                                        index,
+                                                                        "from",
+                                                                        e.target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="w-full border rounded p-2 mb-2"
+                                                            >
+                                                                <option value="">
+                                                                    Pilih From
+                                                                    Table
+                                                                </option>
+                                                                {tableData.map(
+                                                                    (table) => (
+                                                                        <option
+                                                                            key={
+                                                                                table.id
+                                                                            }
+                                                                            value={
+                                                                                table.id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                table.name
+                                                                            }
+                                                                        </option>
+                                                                    )
+                                                                )}
+                                                            </select>
+                                                            <select
+                                                                value={
+                                                                    relation.to
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleRelationChange(
+                                                                        index,
+                                                                        "to",
+                                                                        e.target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="w-full border rounded p-2 mb-2"
+                                                            >
+                                                                <option value="">
+                                                                    Pilih To
+                                                                    Table
+                                                                </option>
+                                                                {tableData.map(
+                                                                    (table) => (
+                                                                        <option
+                                                                            key={
+                                                                                table.id
+                                                                            }
+                                                                            value={
+                                                                                table.id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                table.name
+                                                                            }
+                                                                        </option>
+                                                                    )
+                                                                )}
+                                                            </select>
+                                                            <select
+                                                                value={
+                                                                    relation.type
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleRelationChange(
+                                                                        index,
+                                                                        "type",
+                                                                        e.target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="w-full border rounded p-2 mb-2"
+                                                            >
+                                                                <option value="">
+                                                                    Tipe
+                                                                </option>
+                                                                {[
+                                                                    "one-to-one",
+                                                                    "one-to-many",
+                                                                    "many-to-one",
+                                                                    "many-to-many",
+                                                                ].map(
+                                                                    (type) => (
+                                                                        <option
+                                                                            key={
+                                                                                type
+                                                                            }
+                                                                            value={
+                                                                                type
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                type
+                                                                            }
+                                                                        </option>
+                                                                    )
+                                                                )}
+                                                            </select>
+                                                        </div>
+
+                                                        {/* Tombol "X" untuk menghapus relasi */}
+                                                        {newRelations.length >
+                                                            1 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    removeRelationField(
+                                                                        index,
+                                                                        relation.id
+                                                                    )
+                                                                } // Pastikan fungsinya benar
+                                                                className="ml-2 text-red-500 font-bold"
+                                                            >
+                                                                X
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )
+                                            )}
+
+                                            <button
+                                                type="button"
+                                                onClick={addNewRelationField}
+                                                className="bg-blue-500 text-white px-4 py-2 rounded"
+                                            >
+                                                Tambah Relasi Baru
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-end">
+                                        <button
+                                            type="submit"
+                                            className="bg-amber-500 text-white px-4 py-2 rounded-lg"
+                                        >
+                                            {isEditing
+                                                ? "Simpan Perubahan"
+                                                : "Tambah"}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleCloseModal()}
+                                            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg ml-4"
+                                        >
+                                            Batal
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
                 </DndContext>
             </div>
         </AuthenticatedLayout>

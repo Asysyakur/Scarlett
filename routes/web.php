@@ -1,11 +1,9 @@
 <?php
 
-use App\Events\MonitoringChannel;
-use App\Events\testingEvent;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GroupsController;
 use App\Http\Controllers\MateriController;
-use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\TestController;
@@ -23,10 +21,6 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/monitoring', function () {
         return Inertia::render('Monitoring/Index');
@@ -35,26 +29,47 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/monitoring/aktivitas-siswa', [ActivityController::class, 'index'])->name('monitoring.activity');
     Route::get('/monitoring/aktivitas-siswa/{userId}', [ActivityController::class, 'show'])->name('monitoring.detail');
 
-    // Route::get('/monitoring/monitoring-test', [MonitoringController::class, 'monitoringTest'])->name('monitoring.monitoringTest');
-});
-Route::get('tests', function () {
-    return Inertia::render('TestPage');
-})->name('test');
+    Route::get('/monitoring/monitoring-test', function () {
+        return Inertia::render('Monitoring/MonitoringTest/Index');
+    })->name('monitoring.monitoringTest');
 
-Route::get('guru', function () {
-    return Inertia::render('GuruPage');
-})->name('guru');
+    Route::get('/monitoring/erd', [ActivityController::class, 'erdIndex'])->name('monitoring.erd');
+    Route::get('/monitoring/erd/{id}', [ActivityController::class, 'erdShow'])->name('monitoring.erd.show');
 
-Route::post('/broadcast-video', function () {
-    $videoData = request()->videoData;
-    broadcast(new testingEvent($videoData, 1));
-    return response()->json(['message' => 'Video broadcasted successfully!']);
+    Route::post('/kelompok/storeMany', [GroupsController::class, 'storeMany'])->name('group.storeMany');
+    Route::post('/kelompok/randomize', [GroupsController::class, 'randomize'])->name('group.randomize');
+    Route::post('/kelompok/{group}/update-drawio-link', [GroupsController::class, 'updateDrawioLink'])->name('group.updateDrawioLink');
+
+    Route::post('/test/{test}', [TestController::class, 'edit'])->name('test.edit');
+    Route::post('/test', [TestController::class, 'store'])->name('test.store');
+    Route::delete('/test/{id}', [TestController::class, 'destroy'])->name('test.destroy');
+
+    Route::post('/materi', [MateriController::class, 'store'])->name('materi.store');
+    Route::post('/materi/{materi}', [MateriController::class, 'update'])->name('materi.update');
+    Route::delete('/materi/{materi}', [MateriController::class, 'destroy'])->name('materi.destroy');
+
+    Route::post('/materi/{id}/drag-and-drop/attribute', [MateriController::class, 'editAttribute'])->name('dnd.attribute.edit');
+    Route::post('/materi/{id}/drag-and-drop/table', [MateriController::class, 'editTable'])->name('dnd.table.edit');
+    Route::post('/materi/{id}/drag-and-drop/relation', [MateriController::class, 'editRelation'])->name('dnd.relation.edit');
+    
+    Route::delete('/materi/drag-and-drop/attribute/{attid}', [MateriController::class, 'destroyAttribute'])->name('dnd.attribute.destroy');
+    Route::delete('/materi/drag-and-drop/table/{attid}', [MateriController::class, 'destroyTable'])->name('dnd.table.destroy');
+    Route::delete('/materi/drag-and-drop/relation/{attid}', [MateriController::class, 'destroyRelation'])->name('dnd.relation.destroy');
+
+    Route::post('/dashboard/update', [DashboardController::class, 'update'])->name('dashboard.update');
+
+    Route::post('/groups/{group}/add-student', [GroupsController::class, 'addStudent'])->name('group.addStudent');
+    Route::delete('/groups/{group}/remove-student/{id}', [GroupsController::class, 'removeStudent'])->name('group.removeStudent');
 });
 
 Route::middleware('auth')->group(function () {
     Route::get('/diagram', function () {
         return Inertia::render('DrawIo/Index');
     })->name('diagram');
+    
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/start-screen-share', [TestController::class, 'startScreenShare']);
+    Route::post('/stop-screen-share', [TestController::class, 'stopScreenShare']);
 
     Route::get('/presensi', function () {
         return Inertia::render('Presensi/Index');
@@ -62,16 +77,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/presensi', [ProgressController::class, 'storePresensi'])->name('presensi.store');
 
     Route::get('/kelompok', [GroupsController::class, 'index'])->name('group.index');
-    Route::post('/kelompok/storeMany', [GroupsController::class, 'storeMany'])->name('group.storeMany');
-    Route::post('/kelompok/randomize', [GroupsController::class, 'randomize'])->name('group.randomize');
-    Route::post('/kelompok/{group}/update-drawio-link', [GroupsController::class, 'updateDrawioLink'])->name('group.updateDrawioLink');
     Route::get('/diagram', [GroupsController::class, 'indexDiagram'])->name('diagram');
 
     Route::get('/materi', [MateriController::class, 'index'])->name('materi.index');
     Route::get('/materi/{materi}', [MateriController::class, 'show'])->name('materi.show');
-    Route::post('/materi', [MateriController::class, 'store'])->name('materi.store');
-    Route::post('/materi/{materi}', [MateriController::class, 'update'])->name('materi.update');
     Route::get('/materi/{materi}/drag-and-drop', [MateriController::class, 'dragAndDrop'])->name('materi.dragAndDrop');
+    Route::get('/materi/{materi}/studi-kasus', [MateriController::class, 'studiKasus'])->name('materi.studiKasus');
+    Route::post('/materi/drag-and-drop/save', [MateriController::class, 'dndSave'])->name('materi.dragAndDrop.save');
 
     Route::get('/test', [TestController::class, 'index'])->name('test.index');
     Route::get('/test/{test}', [TestController::class, 'show'])->name('test.show');

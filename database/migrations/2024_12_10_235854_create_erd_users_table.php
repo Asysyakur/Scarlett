@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('erd_tables', function (Blueprint $table) {
+        Schema::create('erd_users', function (Blueprint $table) {
             $table->id();
             $table->foreignId('materi_id')->constrained('materis')->onDelete('cascade');
-            $table->string('name');
+            $table->foreignId('table_id')->constrained('erd_tables')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->json('attributes')->nullable();
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('erd_tables');
+        Schema::dropIfExists('erd_users');
     }
 };

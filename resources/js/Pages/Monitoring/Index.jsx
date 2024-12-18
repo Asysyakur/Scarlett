@@ -3,6 +3,7 @@ import { Head, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import monitoringIlu from "./assets/MonitoringIlu.svg";
 import activityIlu from "./assets/ActivityIlu.svg";
+import ErdIlu from "./assets/ErdIlu.svg";
 
 export default function Monitoring() {
     const monitoringOptions = [
@@ -18,6 +19,12 @@ export default function Monitoring() {
             ilu: activityIlu,
             descriptiom: "Melihat aktivitas siswa selama pembelajaran",
         },
+        {
+            name: "ERD DND Monitoring",
+            href: "/monitoring/erd",
+            ilu: ErdIlu,
+            descriptiom: "Melihat hasil ERD drag and drop siswa",
+        },
     ];
 
     return (
@@ -25,12 +32,12 @@ export default function Monitoring() {
             <Head title="Monitoring" />
             <div className="max-w-7xl mx-auto p-6">
                 {/* Styled grid layout */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-2 text-center">
                     {monitoringOptions.map((option, index) => (
                         <Link
                             key={index}
                             href={option.href}
-                            className="transform transition-all md:mx-24 mx-12 hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-50 hover:shadow-xl"
+                            className="transform transition-all md:mx-12 mx-6 hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-50 hover:shadow-xl"
                         >
                             <h2 className="text-2xl font-semibold text-gray-800">
                                 {option.name}
