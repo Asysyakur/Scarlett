@@ -10,16 +10,16 @@ export default function Group({ auth, users, groups }) {
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [drawioLink, setDrawioLink] = useState("");
-    const [selectedMembers, setSelectedMembers] = useState([]);
+    const [selectedMembers, setSelectedMembers] = useState([]); 
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
-    const groupMembers = groups.flatMap((group) =>
-        group.users.map((user) => user.id)
-    );
+        const groupMembers = groups.flatMap((group) =>
+            group.users.map((user) => user.id)
+        );
 
-    const usersNotInGroups = users.filter(
-        (user) => !groupMembers.includes(user.id)
-    );
+        const usersNotInGroups = users.filter(
+            (user) => !groupMembers.includes(user.id)
+        );
     useEffect(() => {
         // Manually update the path when the component mounts
         changePath("/kelompok");
