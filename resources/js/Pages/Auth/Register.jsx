@@ -18,6 +18,10 @@ export default function Register() {
 
         post(route('register'), {
             onFinish: () => reset('password', 'password_confirmation'),
+            onSuccess: () => {
+                // Refresh the page after successful login
+                window.location.reload();
+            },
         });
     };
 

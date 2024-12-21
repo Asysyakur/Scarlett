@@ -111,39 +111,39 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
             >
                 <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
                     <h2 className="text-4xl font-bold text-gray-800 mb-8">
-                        Fitur Kami
+                        Fitur Scarlett
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {[
                             {
-                                title: "Antarmuka Interaktif",
+                                title: "Monitoring Siswa",
                                 description:
-                                    "Tampilan yang menarik untuk meningkatkan pengalaman belajar.",
+                                    "Screen share quiz dan record aktivitas siswa agar guru dapat merencanakan pembelajaran yang optimal",
                             },
                             {
-                                title: "Desain Responsif",
+                                title: "Drag and Drop Games",
                                 description:
-                                    "Tampilan yang dapat disesuaikan untuk semua perangkat.",
+                                    "Assesmen formatif drag and drop interaktif yang bisa mengasah kemampuan belajar basis data siswa sebelum dan diluar pembelajaran kelas",
                             },
                             {
-                                title: "Komponen Kustomisasi",
+                                title: "Pretest & Postest",
                                 description:
-                                    "Elemen yang fleksibel untuk memenuhi kebutuhan Anda.",
+                                    "Assesmen sumatif pembelajaran dengan teori Logical Thinking untuk mengukur kemampuan kognitif, berpikir logis dan pemahaman terhadap materi oleh siswa",
                             },
                             {
-                                title: "Performa Halus",
+                                title: "Integrasi Pembelajaran",
                                 description:
-                                    "Aplikasi yang cepat dan responsif.",
+                                    "Seluruh elemen pembelajaran terintegrasi, mulai dari Capaian Pembelajaran, Tujuan Pembelajaran dan materi sehingga guru dapat melaksanakan pembelajaran sepenuhnya di Scarlett",
                             },
                             {
-                                title: "Keamanan yang Kuat",
+                                title: "Kanvas Diagram",
                                 description:
-                                    "Melindungi data Anda dengan langkah-langkah keamanan terbaik.",
+                                    "Integrasi fitur pembuatan diagram agar siswa memahami pembuatan ERD berdasarkan studi kasus permasalahan",
                             },
                             {
-                                title: "Dukungan & Dokumentasi",
+                                title: "Evaluasi  & Analitik",
                                 description:
-                                    "Sumber daya lengkap untuk membantu pengguna.",
+                                    "Alat pembantu guru dalam mengevaluasi dan merencanakan pembelajaran yang berkelanjutan",
                             },
                         ].map((feature, index) => (
                             <div
@@ -169,16 +169,13 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
             >
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
                     <h2 className="text-4xl font-bold text-gray-800 text-center mb-8">
-                        Tentang Kami
+                        Tentang Scarlett
                     </h2>
                     <div className="bg-red-700 text-white p-6 rounded-lg shadow-lg">
                         <p className="text-xl text-center mb-4">
-                            Kami adalah tim pengembang yang fokus dalam
-                            menciptakan media interaktif untuk pendidikan.
-                            Dengan visi untuk menggabungkan teknologi modern
-                            dengan elemen gamifikasi, kami berkomitmen untuk
-                            menyediakan platform pembelajaran yang inovatif dan
-                            bermanfaat.
+                            Scarlett adalah aplikasi Learning Management System yang mengintegrasikan fitur - fitur esensial untuk pembelajaran siswa di masa modern yang berlandaskan teknologi dan memfasilitasi pembelajaran kurikulum merdeka. 
+                            Scarlett menyediakan fitur monitoring yang sangat membantu guru untuk merencanakan pembelajaran yang berkelanjutan, berfokus pada siswa dan sukses menerapkan prinsip pembelajaran kurikulum merdeka
+
                         </p>
                         <ul className="text-lg list-disc px-8 space-y-4">
                             <li>
