@@ -8,32 +8,28 @@ function DrawioEmbed({ auth, groups }) {
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
 
-    useEffect(() => {
-        // Manually update the path when the component mounts
-        changePath(`/diagram`);
-
-        // Start activity when page is loaded or path changes
-        startActivity();
-
-        // Event listener to stop/resume activity on tab visibility change
-        const handleVisibilityChange = () => {
-            if (document.hidden) {
-                stopActivity();
-            } else {
-                startActivity();
-            }
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        return () => {
-            document.removeEventListener(
-                "visibilitychange",
-                handleVisibilityChange
-            );
-            stopActivity(); // Ensure activity is stopped when component unmounts
-        };
-    }, [currentPath]); // Depend on functions and manually updating path
+        useEffect(() => {
+            const handleVisibilityChange = async () => {
+                if (document.hidden) {
+                    await stopActivity(); // Wait for stopActivity to complete
+                } else {
+                    startActivity();
+                }
+            };
+    
+            changePath(`/diagram`);
+            startActivity();
+    
+            document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+            return () => {
+                document.removeEventListener(
+                    "visibilitychange",
+                    handleVisibilityChange
+                );
+                stopActivity(); // Ensure stopActivity completes before cleanup
+            };
+        }, [currentPath]);
 
     const isAdmin = auth.user.role_id === 1;
 

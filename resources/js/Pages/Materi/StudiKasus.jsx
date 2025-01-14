@@ -8,21 +8,25 @@ export default function StudiKasus({ materi }) {
         useActivity();
 
     useEffect(() => {
+        const handleVisibilityChange = async () => {
+            if (document.hidden) {
+                await stopActivity(); // Wait for stopActivity to complete
+            } else {
+                startActivity();
+            }
+        };
+
         changePath(`/materi/${materi.id}/studi-kasus`);
         startActivity();
 
-        const handleVisibilityChange = () => {
-            if (document.hidden) stopActivity();
-            else startActivity();
-        };
-
         document.addEventListener("visibilitychange", handleVisibilityChange);
+
         return () => {
             document.removeEventListener(
                 "visibilitychange",
                 handleVisibilityChange
             );
-            stopActivity();
+            stopActivity(); // Ensure stopActivity completes before cleanup
         };
     }, [currentPath]);
 

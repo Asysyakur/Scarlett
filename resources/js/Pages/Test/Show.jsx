@@ -14,23 +14,35 @@ function StudentScreenShare({ auth, test }) {
         useActivity();
 
     useEffect(() => {
+        const handleVisibilityChange = async () => {
+            if (document.hidden) {
+                await stopActivity(); // Wait for stopActivity to complete
+            } else {
+                startActivity();
+            }
+        };
+
         changePath(`/test/${test.id}`);
         startActivity();
 
-        const handleVisibilityChange = () => {
-            if (document.hidden) stopActivity();
-            else startActivity();
-        };
-
         document.addEventListener("visibilitychange", handleVisibilityChange);
+
         return () => {
             document.removeEventListener(
                 "visibilitychange",
                 handleVisibilityChange
             );
-            stopActivity();
+            stopActivity(); // Ensure stopActivity completes before cleanup
         };
     }, [currentPath]);
+
+    useEffect(() => {
+        const savedIsSharing = sessionStorage.getItem("isSharing");
+        const savedPeerId = sessionStorage.getItem("peerId");
+        if (savedIsSharing === "true" && savedPeerId) {
+            resumeScreenShare(savedPeerId);
+        }
+    }, []);
 
     const startScreenShare = async () => {
         try {
@@ -53,15 +65,15 @@ function StudentScreenShare({ auth, test }) {
             const peer = new Peer();
 
             peer.on("open", async (peerId) => {
-
                 await axios.post("/start-screen-share", {
                     studentId: auth.user.id,
                     name: auth.user.name,
                     peerId,
                 });
 
-                peer.on("call", (call) => {
+                sessionStorage.setItem("peerId", peerId);
 
+                peer.on("call", (call) => {
                     if (streamRef.current) {
                         const localStream = streamRef.current.srcObject;
                         call.answer(localStream);
@@ -85,8 +97,41 @@ function StudentScreenShare({ auth, test }) {
 
             peerRef.current = peer;
             setIsSharing(true);
+            sessionStorage.setItem("isSharing", "true");
         } catch (err) {
             console.error("Error starting screen share:", err);
+        }
+    };
+
+    const resumeScreenShare = async (peerId) => {
+        try {
+            const peer = new Peer(peerId);
+
+            peer.on("call", (call) => {
+                if (streamRef.current) {
+                    const localStream = streamRef.current.srcObject;
+                    call.answer(localStream);
+                    call.on("stream", function (remoteStream) {
+                        const remoteVideo =
+                            document.getElementById("remote-video");
+                        if (remoteVideo) {
+                            remoteVideo.srcObject = remoteStream;
+                        }
+                    });
+                    call.on("error", (err) =>
+                        console.error("Error during call:", err)
+                    );
+                } else {
+                    console.log(
+                        "No local stream available to answer the call."
+                    );
+                }
+            });
+
+            peerRef.current = peer;
+            setIsSharing(true);
+        } catch (err) {
+            console.error("Error resuming screen share:", err);
         }
     };
 
@@ -101,6 +146,8 @@ function StudentScreenShare({ auth, test }) {
         }
 
         setIsSharing(false);
+        sessionStorage.setItem("isSharing", "false");
+        sessionStorage.removeItem("peerId");
 
         // Kirim notifikasi ke server bahwa screen sharing telah dihentikan
         axios.post("/stop-screen-share", {

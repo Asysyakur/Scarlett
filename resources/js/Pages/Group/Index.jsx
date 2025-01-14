@@ -10,31 +10,27 @@ export default function Group({ auth, users, groups }) {
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [drawioLink, setDrawioLink] = useState("");
-    const [selectedMembers, setSelectedMembers] = useState([]); 
+    const [selectedMembers, setSelectedMembers] = useState([]);
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
-        const groupMembers = groups.flatMap((group) =>
-            group.users.map((user) => user.id)
-        );
+    const groupMembers = groups.flatMap((group) =>
+        group.users.map((user) => user.id)
+    );
 
-        const usersNotInGroups = users.filter(
-            (user) => !groupMembers.includes(user.id)
-        );
+    const usersNotInGroups = users.filter(
+        (user) => !groupMembers.includes(user.id)
+    );
     useEffect(() => {
-        // Manually update the path when the component mounts
-        changePath("/kelompok");
-
-        // Start activity when page is loaded or path changes
-        startActivity();
-
-        // Event listener to stop/resume activity on tab visibility change
-        const handleVisibilityChange = () => {
+        const handleVisibilityChange = async () => {
             if (document.hidden) {
-                stopActivity();
+                await stopActivity(); // Wait for stopActivity to complete
             } else {
                 startActivity();
             }
         };
+
+        changePath("/kelompok");
+        startActivity();
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -43,9 +39,9 @@ export default function Group({ auth, users, groups }) {
                 "visibilitychange",
                 handleVisibilityChange
             );
-            stopActivity(); // Ensure activity is stopped when component unmounts
+            stopActivity(); // Ensure stopActivity completes before cleanup
         };
-    }, [currentPath]); // Depend on functions and manually updating path
+    }, [currentPath]);
 
     const handleGroupCountChange = (event) => {
         setGroupCount(event.target.value);
@@ -112,7 +108,6 @@ export default function Group({ auth, users, groups }) {
     };
 
     const handleRemoveMember = async (userId) => {
-
         try {
             await axios.delete(
                 route("group.removeStudent", {
@@ -245,82 +240,77 @@ export default function Group({ auth, users, groups }) {
                         <h3 className="text-xl font-semibold text-gray-700 mb-4">
                             Tambah Anggota ke Grup
                         </h3>
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <div className="w-full">
-                                    <h4 className="text-lg font-semibold text-gray-600 mb-2">
-                                        Anggota di Grup
-                                    </h4>
-                                    <ul className="border border-gray-300 rounded-lg p-2 overflow-auto h-64">
-                                        {selectedGroup?.users.map((user) => (
-                                            <li
-                                                key={user.id}
-                                                className="flex justify-between items-center mb-2"
-                                            >
-                                                <span>{user.name}</span>
-                                                <button
-                                                    onClick={() =>
-                                                        handleRemoveMember(
-                                                            user.id
-                                                        )
-                                                    }
-                                                    className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
-                                                >
-                                                    Hapus
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                <div className="w-full">
-                                    <h4 className="text-lg font-semibold text-gray-600 mb-2">
-                                        Anggota yang Belum di Grup
-                                    </h4>
-                                    <select
-                                        multiple
-                                        value={selectedMembers}
-                                        onChange={(e) => {
-                                            const options = e.target.options;
-                                            const selectedValues = [];
-                                            for (
-                                                let i = 0;
-                                                i < options.length;
-                                                i++
-                                            ) {
-                                                if (options[i].selected) {
-                                                    selectedValues.push(
-                                                        options[i].value
-                                                    );
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="w-full">
+                                <h4 className="text-lg font-semibold text-gray-600 mb-2">
+                                    Anggota di Grup
+                                </h4>
+                                <ul className="border border-gray-300 rounded-lg p-2 overflow-auto h-64">
+                                    {selectedGroup?.users.map((user) => (
+                                        <li
+                                            key={user.id}
+                                            className="flex justify-between items-center mb-2"
+                                        >
+                                            <span>{user.name}</span>
+                                            <button
+                                                onClick={() =>
+                                                    handleRemoveMember(user.id)
                                                 }
-                                            }
-                                            setSelectedMembers(selectedValues);
-                                        }}
-                                        className="w-full p-2 border border-gray-300 rounded-lg mb-4 h-64 overflow-auto"
-                                    >
-                                        {usersNotInGroups.map((user) => (
-                                            <option
-                                                key={user.id}
-                                                value={user.id}
+                                                className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
                                             >
-                                                {user.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                                                Hapus
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                            <div className="flex w-full">
-                                <button
-                                    onClick={() => setShowAddMemberModal(false)}
-                                    className="px-4 py-2 w-full bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-200 mr-2"
+                            <div className="w-full">
+                                <h4 className="text-lg font-semibold text-gray-600 mb-2">
+                                    Anggota yang Belum di Grup
+                                </h4>
+                                <select
+                                    multiple
+                                    value={selectedMembers}
+                                    onChange={(e) => {
+                                        const options = e.target.options;
+                                        const selectedValues = [];
+                                        for (
+                                            let i = 0;
+                                            i < options.length;
+                                            i++
+                                        ) {
+                                            if (options[i].selected) {
+                                                selectedValues.push(
+                                                    options[i].value
+                                                );
+                                            }
+                                        }
+                                        setSelectedMembers(selectedValues);
+                                    }}
+                                    className="w-full p-2 border border-gray-300 rounded-lg mb-4 h-64 overflow-auto"
                                 >
-                                    Batal
-                                </button>
-                                <button
-                                    onClick={handleAddMember}
-                                    className="px-4 py-2 w-full bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
-                                >
-                                    Tambah
-                                </button>
+                                    {usersNotInGroups.map((user) => (
+                                        <option key={user.id} value={user.id}>
+                                            {user.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
+                        </div>
+                        <div className="flex w-full">
+                            <button
+                                onClick={() => setShowAddMemberModal(false)}
+                                className="px-4 py-2 w-full bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-200 mr-2"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={handleAddMember}
+                                className="px-4 py-2 w-full bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+                            >
+                                Tambah
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

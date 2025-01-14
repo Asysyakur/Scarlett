@@ -8,32 +8,28 @@ export default function Show({ materi }) {
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
 
-    useEffect(() => {
-        // Manually update the path when the component mounts
-        changePath(`/materi/${materi.id}`);
-
-        // Start activity when page is loaded or path changes
-        startActivity();
-
-        // Event listener to stop/resume activity on tab visibility change
-        const handleVisibilityChange = () => {
-            if (document.hidden) {
-                stopActivity();
-            } else {
-                startActivity();
-            }
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        return () => {
-            document.removeEventListener(
-                "visibilitychange",
-                handleVisibilityChange
-            );
-            stopActivity(); // Ensure activity is stopped when component unmounts
-        };
-    }, [currentPath]); // Depend on functions and manually updating path
+        useEffect(() => {
+            const handleVisibilityChange = async () => {
+                if (document.hidden) {
+                    await stopActivity(); // Wait for stopActivity to complete
+                } else {
+                    startActivity();
+                }
+            };
+    
+            changePath(`/materi/${materi.id}`);
+            startActivity();
+    
+            document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+            return () => {
+                document.removeEventListener(
+                    "visibilitychange",
+                    handleVisibilityChange
+                );
+                stopActivity(); // Ensure stopActivity completes before cleanup
+            };
+        }, [currentPath]);
 
     function convertToEmbedURL(youtubeUrl) {
         const regex =

@@ -49,26 +49,30 @@ const GameBoard = ({
     const [newRelations, setNewRelations] = useState([
         { from: "", to: "", type: "", id: "" }, // Initialize with empty values for each field
     ]);
-    
+
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
 
     useEffect(() => {
+        const handleVisibilityChange = async () => {
+            if (document.hidden) {
+                await stopActivity(); // Wait for stopActivity to complete
+            } else {
+                startActivity();
+            }
+        };
+
         changePath(`/materi/${materi.id}/drag-and-drop`);
         startActivity();
 
-        const handleVisibilityChange = () => {
-            if (document.hidden) stopActivity();
-            else startActivity();
-        };
-
         document.addEventListener("visibilitychange", handleVisibilityChange);
+
         return () => {
             document.removeEventListener(
                 "visibilitychange",
                 handleVisibilityChange
             );
-            stopActivity();
+            stopActivity(); // Ensure stopActivity completes before cleanup
         };
     }, [currentPath]);
 
@@ -527,7 +531,7 @@ const GameBoard = ({
 
             setLines(updatedLines.filter((line) => line !== null));
         }, [relations, tables]);
-        
+
         return (
             <svg className="absolute inset-0 pointer-events-none z-30 w-full h-full">
                 {lines.map((line, index) => (
@@ -765,8 +769,7 @@ const GameBoard = ({
         setIsEditing(true);
     };
 
-        const handleSave = async () => {
-    
+    const handleSave = async () => {
         try {
             // Prepare payload with all tables data
             const payload = tableData.map((table) => ({
@@ -775,13 +778,13 @@ const GameBoard = ({
                 user_id: auth.user.id,
                 attributes: table.attributes, // Assuming attributes is an array
             }));
-    
+
             // Example: Making an API call to save the table data
             const response = await axios.post(
                 "/materi/drag-and-drop/save",
                 payload
             );
-    
+
             // Check if the response is successful
             if (response.status === 200) {
                 // Show success alert

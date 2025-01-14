@@ -17,20 +17,16 @@ export default function Dashboard({ auth, data }) {
         useActivity();
 
     useEffect(() => {
-        // Manually update the path when the component mounts
-        changePath("/dashboard");
-
-        // Start activity when page is loaded or path changes
-        startActivity();
-
-        // Event listener to stop/resume activity on tab visibility change
-        const handleVisibilityChange = () => {
+        const handleVisibilityChange = async () => {
             if (document.hidden) {
-                stopActivity();
+                await stopActivity(); // Wait for stopActivity to complete
             } else {
                 startActivity();
             }
         };
+
+        changePath("/dashboard");
+        startActivity();
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -39,9 +35,9 @@ export default function Dashboard({ auth, data }) {
                 "visibilitychange",
                 handleVisibilityChange
             );
-            stopActivity(); // Ensure activity is stopped when component unmounts
+            stopActivity(); // Ensure stopActivity completes before cleanup
         };
-    }, [currentPath]); // Depend on functions and manually updating path
+    }, [currentPath]);
 
     // Toggle modal visibility
     const toggleModal = () => {

@@ -23,21 +23,25 @@ export default function Index({ tests: initialTests, auth }) {
     const modalRef = useRef();
 
     useEffect(() => {
+        const handleVisibilityChange = async () => {
+            if (document.hidden) {
+                await stopActivity(); // Wait for stopActivity to complete
+            } else {
+                startActivity();
+            }
+        };
+
         changePath("/test");
         startActivity();
 
-        const handleVisibilityChange = () => {
-            if (document.hidden) stopActivity();
-            else startActivity();
-        };
-
         document.addEventListener("visibilitychange", handleVisibilityChange);
+
         return () => {
             document.removeEventListener(
                 "visibilitychange",
                 handleVisibilityChange
             );
-            stopActivity();
+            stopActivity(); // Ensure stopActivity completes before cleanup
         };
     }, [currentPath]);
 

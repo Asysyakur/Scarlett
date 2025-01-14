@@ -27,20 +27,16 @@ export default function Index({ materis: initialMateri, auth }) {
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
-        // Manually update the path when the component mounts
-        changePath("/materi");
-
-        // Start activity when page is loaded or path changes
-        startActivity();
-
-        // Event listener to stop/resume activity on tab visibility change
-        const handleVisibilityChange = () => {
+        const handleVisibilityChange = async () => {
             if (document.hidden) {
-                stopActivity();
+                await stopActivity(); // Wait for stopActivity to complete
             } else {
                 startActivity();
             }
         };
+
+        changePath("/materi");
+        startActivity();
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -49,9 +45,9 @@ export default function Index({ materis: initialMateri, auth }) {
                 "visibilitychange",
                 handleVisibilityChange
             );
-            stopActivity(); // Ensure activity is stopped when component unmounts
+            stopActivity(); // Ensure stopActivity completes before cleanup
         };
-    }, [currentPath]); // Depend on functions and manually updating path
+    }, [currentPath]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
