@@ -173,7 +173,13 @@ export default function Show({ materi }) {
                 {/* Add a button below the tabs */}
                 <div className="mt-6 flex justify-center">
                     <Link
-                        href={handlePageChange()}
+                        href={
+                            materi?.dnd === 1 || true
+                                ? `/materi/${materi?.id}/drag-and-drop`
+                                : materi?.studikasus === 1 || true
+                                ? `/materi/${materi?.id}/studi-kasus`
+                                : "/materi"
+                        }
                         className="px-8 py-3 text-white bg-amber-500 rounded-md hover:bg-amber-600 transition duration-200 ease-in-out"
                     >
                         Selanjutnya
