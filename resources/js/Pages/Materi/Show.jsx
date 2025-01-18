@@ -8,28 +8,28 @@ export default function Show({ materi }) {
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
 
-        useEffect(() => {
-            const handleVisibilityChange = async () => {
-                if (document.hidden) {
-                    await stopActivity(); // Wait for stopActivity to complete
-                } else {
-                    startActivity();
-                }
-            };
-    
-            changePath(`/materi/${materi.id}`);
-            startActivity();
-    
-            document.addEventListener("visibilitychange", handleVisibilityChange);
-    
-            return () => {
-                document.removeEventListener(
-                    "visibilitychange",
-                    handleVisibilityChange
-                );
-                stopActivity(); // Ensure stopActivity completes before cleanup
-            };
-        }, [currentPath]);
+    useEffect(() => {
+        const handleVisibilityChange = async () => {
+            if (document.hidden) {
+                await stopActivity(); // Wait for stopActivity to complete
+            } else {
+                startActivity();
+            }
+        };
+
+        changePath(`/materi/${materi.id}`);
+        startActivity();
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+            stopActivity(); // Ensure stopActivity completes before cleanup
+        };
+    }, [currentPath]);
 
     function convertToEmbedURL(youtubeUrl) {
         const regex =
@@ -42,17 +42,6 @@ export default function Show({ materi }) {
 
         return null; // jika tidak valid, kembalikan null
     }
-
-    const handlePageChange = () => {
-        let redirectUrl = "/materi"; // Default route
-        if (materi.dnd === 1) {
-            redirectUrl = `/materi/${materi.id}/drag-and-drop`; // Set specific route if conditions match
-        } else if (materi.studikasus === 1) {
-            redirectUrl = `/materi/${materi.id}/studi-kasus`; // Set specific route if conditions match
-        }
-
-        return redirectUrl;
-    };
 
     const contentWithLineBreaks = materi.content.replace(/\n/g, "<br />");
     return (
@@ -174,9 +163,10 @@ export default function Show({ materi }) {
                 <div className="mt-6 flex justify-center">
                     <Link
                         href={
-                            materi?.dnd === 1 || true
+                            materi?.dnd === true || materi?.dnd === 1
                                 ? `/materi/${materi?.id}/drag-and-drop`
-                                : materi?.studikasus === 1 || true
+                                : materi?.studikasus === true ||
+                                  materi?.studikasus === 1
                                 ? `/materi/${materi?.id}/studi-kasus`
                                 : "/materi"
                         }
