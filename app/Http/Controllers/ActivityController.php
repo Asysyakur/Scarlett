@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
-use App\Models\ERDUser;
+use App\Models\ERDUsers;
 use App\Models\Materi;
 use App\Models\Relasi;
 use App\Models\User;
@@ -121,7 +121,7 @@ class ActivityController extends Controller
         $allUsers = User::all();
 
         // Ambil semua pengguna dari tabel ERDUser
-        $erdUsers = ERDUser::all();
+        $erdUsers = ERDUsers::all();
         $usersInERD = $erdUsers->map(function ($erdUser) use ($allUsers) {
             $user = $allUsers->firstWhere('id', $erdUser->user_id);
             $material = Materi::find($erdUser->materi_id); // Ambil objek material berdasarkan materi_id
@@ -140,7 +140,7 @@ class ActivityController extends Controller
     public function erdShow($id)
     {
         // Muat relasi 'table' saat mengambil data ERDUser
-        $erdUser = ERDUser::where('user_id', $id)->with('table')->get();
+        $erdUser = ERDUsers::where('user_id', $id)->with('table')->get();
         $erdRelation = Relasi::where('materi_id', $erdUser->first()->materi_id)->get();
 
         // Sertakan nama tabel dalam respons
