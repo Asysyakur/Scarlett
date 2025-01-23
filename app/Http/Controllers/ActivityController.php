@@ -62,12 +62,13 @@ class ActivityController extends Controller
         // Calculate the total duration by considering any previous duration
         // and the time difference from the start to end time
         $totalDuration = now()->diffInSeconds($activity->start_time);  // Time from start to now
-
+        $totalDuration = abs($totalDuration);
+        
         if ($activity->duration) {
             // If there was any duration from previous stop, add it to the new duration
             $totalDuration += $activity->duration;
         }
-
+        
         // Set end time and update duration
         $activity->end_time = now(); // Set the end time when the activity stops
         $activity->duration = $totalDuration;  // Set the final duration
