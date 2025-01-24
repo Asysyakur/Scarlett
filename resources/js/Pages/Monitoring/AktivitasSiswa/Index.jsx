@@ -93,20 +93,18 @@ const MonitoringPage = ({ activities }) => {
                                         {activity.user_name}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
-                                        {activity.total_duration * -1 < 60
+                                        {activity.total_duration < 60
                                             ? `${
-                                                  activity.total_duration * -1
+                                                  activity.total_duration
                                               } detik`
-                                            : activity.total_duration * -1 <
+                                            : activity.total_duration <
                                               3600
                                             ? `${(
-                                                  (activity.total_duration *
-                                                      -1) /
+                                                  (activity.total_duration) /
                                                   60
                                               ).toFixed(2)} menit`
                                             : `${(
-                                                  (activity.total_duration *
-                                                      -1) /
+                                                  (activity.total_duration) /
                                                   3600
                                               ).toFixed(2)} jam`}
                                     </td>
