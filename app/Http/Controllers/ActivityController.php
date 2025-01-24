@@ -69,6 +69,9 @@ class ActivityController extends Controller
             $totalDuration += $activity->duration;
         }
         
+        // Round the total duration to the nearest integer
+        $totalDuration = round($totalDuration);
+
         // Set end time and update duration
         $activity->end_time = now(); // Set the end time when the activity stops
         $activity->duration = $totalDuration;  // Set the final duration
