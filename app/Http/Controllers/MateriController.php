@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Atribut;
-use App\Models\ERDUser;
+use App\Models\ERDUsers;
 use App\Models\Materi;
 use App\Models\Relasi;
 use App\Models\Table;
@@ -51,7 +51,7 @@ class MateriController extends Controller
         try {
             foreach ($request->all() as $table) {
                 // Check if the record exists based on materi_id, table_id, and user_id
-                $existingRecord = ERDUser::where('materi_id', $table['materi_id'])
+                $existingRecord = ERDUsers::where('materi_id', $table['materi_id'])
                     ->where('table_id', $table['table_id'])
                     ->where('user_id', $table['user_id'])
                     ->first();
@@ -63,7 +63,7 @@ class MateriController extends Controller
                     ]);
                 } else {
                     // If the record doesn't exist, create a new one
-                    ERDUser::create([
+                    ERDUsers::create([
                         'materi_id' => $table['materi_id'],
                         'table_id' => $table['table_id'],
                         'user_id' => $table['user_id'],
@@ -204,7 +204,7 @@ class MateriController extends Controller
         $authUser = Auth::user();
 
         // Fetch all saved ERD data for the authenticated user and specific materi
-        $erdSave = ERDUser::where('materi_id', $materi->id)
+        $erdSave = ERDUsers::where('materi_id', $materi->id)
             ->where('user_id', $authUser->id)
             ->get(); // Use `get()` to fetch all matching records
 
