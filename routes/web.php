@@ -71,9 +71,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/start-screen-share', [TestController::class, 'startScreenShare']);
     Route::post('/stop-screen-share', [TestController::class, 'stopScreenShare']);
 
-    Route::get('/presensi', function () {
-        return Inertia::render('Presensi/Index');
-    })->name('presensi');
+    Route::get('/presensi', [DashboardController::class, 'presensi'])->name('presensi');
     Route::post('/presensi', [ProgressController::class, 'storePresensi'])->name('presensi.store');
 
     Route::get('/kelompok', [GroupsController::class, 'index'])->name('group.index');
