@@ -3,10 +3,10 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import React, { useEffect } from "react";
 
-function Presensi() {
+function Presensi({data}) {
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
-
+console.log(data);
     useEffect(() => {
         const handleVisibilityChange = async () => {
             if (document.hidden) {
@@ -31,10 +31,10 @@ function Presensi() {
     }, [currentPath]);
     return (
         <AuthenticatedLayout>
-            <Head title="Test" />
+            <Head title="Presensi" />
             <div className="container mx-auto">
                 <iframe
-                    src="https://forms.gle/VZKm6NT4CthUM1yY8"
+                    src={data.link_presensi}
                     className=" flex w-full h-screen"
                     frameBorder="0"
                     allowFullScreen

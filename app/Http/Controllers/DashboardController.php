@@ -18,6 +18,15 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function presensi()
+    {
+        $data = Dashboard::get()->first();
+        
+        return Inertia::render('Presensi/Index', [
+            'data' => $data
+        ]);
+    }
+
     public function update(Request $request){
         $request->validate([
             'link_presensi' => 'required|string|max:255',

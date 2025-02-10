@@ -163,11 +163,11 @@ export default function Show({ materi }) {
                 <div className="mt-6 flex justify-center">
                     <Link
                         href={
-                            materi?.dnd === true || materi?.dnd === 1
-                                ? `/materi/${materi?.id}/drag-and-drop`
-                                : materi?.studikasus === true ||
-                                  materi?.studikasus === 1
+                            materi?.studikasus === true || materi?.studikasus === 1
                                 ? `/materi/${materi?.id}/studi-kasus`
+                                : materi?.dnd === true ||
+                                  materi?.dnd === 1
+                                ? `/materi/${materi?.id}/drag-and-drop`
                                 : "/materi"
                         }
                         className="px-8 py-3 text-white bg-amber-500 rounded-md hover:bg-amber-600 transition duration-200 ease-in-out"

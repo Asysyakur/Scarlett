@@ -15,4 +15,9 @@ class Groups extends Model
     {
         return $this->belongsToMany(User::class, 'group_user', 'group_id', 'user_id');
     }
+
+    public function nilaiERDGroup()
+    {
+        return $this->hasMany(NilaiERDGroup::class);
+    }
 }

@@ -142,11 +142,37 @@ export default function Dashboard({ auth, data }) {
                             <h3 className="text-xl font-semibold text-red-700">
                                 Tujuan Pembelajaran
                             </h3>
-                            <p className="mt-4 text-gray-600">
-                                {data
-                                    ? data?.tujuan_pembelajaran
-                                    : "data kosong"}
-                            </p>
+                            <ol className="mt-4 text-gray-600 list-decimal list-inside">
+                                <li>
+                                    Peserta didik dapat menjelaskan konsep dasar
+                                    ERD, termasuk entitas, atribut, relasi, dan
+                                    komponen utama lainnya dengan benar.
+                                </li>
+                                <li>
+                                    Peserta didik dapat mengidentifikasi
+                                    entitas, atribut, primary key, foreign key,
+                                    dan hubungan antar-entitas berdasarkan studi
+                                    kasus yang diberikan.
+                                </li>
+                                <li>
+                                    Peserta didik dapat menentukan jenis
+                                    kardinalitas (one-to-one, one-to-many,
+                                    many-to-many) dalam relasi antar-entitas
+                                    sesuai kebutuhan sistem.
+                                </li>
+                                <li>
+                                    Peserta didik dapat merancang ERD yang
+                                    memuat entitas, atribut, relasi,
+                                    kardinalitas, primary key, dan foreign key
+                                    berdasarkan studi kasus yang relevan.
+                                </li>
+                                <li>
+                                    Peserta didik dapat melakukan evaluasi dan
+                                    revisi terhadap ERD yang telah dibuat untuk
+                                    memastikan kesesuaian dengan kebutuhan
+                                    sistem.
+                                </li>
+                            </ol>
                         </div>
                     </div>
                 </div>

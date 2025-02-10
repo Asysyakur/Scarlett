@@ -18,6 +18,7 @@ const GameBoard = ({
     auth,
     materi,
     erdSave,
+    nilaiERD,
 }) => {
     const [tableData, setTableData] = useState(
         tables.map((table) => {
@@ -890,7 +891,7 @@ const GameBoard = ({
                         </div>
 
                         <div className="w-full flex justify-center">
-                            <div className="w-full md:w-1/4 justify-center border p-4 bg-gray-50 rounded shadow z-50">
+                            <div className="w-full md:w-1/4 justify-center border p-4 bg-gray-50 rounded shadow z-40">
                                 <h3 className="font-bold mb-2">
                                     Available Attributes
                                 </h3>
@@ -1193,6 +1194,41 @@ const GameBoard = ({
                         </div>
                     )}
                 </DndContext>
+                <div className="mt-6">
+                    <label
+                        className="block text-gray-700 text-sm font-bold mb-2"
+                        htmlFor="comment"
+                    >
+                        Catatan:
+                    </label>
+                    {nilaiERD?.catatan ? (
+                        <p className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            {nilaiERD?.catatan}
+                        </p>
+                    ) : (
+                        <p className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            Belum ada catatan
+                        </p>
+                    )}
+                </div>
+
+                <div className="mt-4">
+                    <label
+                        className="block text-gray-700 text-sm font-bold mb-2"
+                        htmlFor="evaluation"
+                    >
+                        Nilai ERD:
+                    </label>
+                    {nilaiERD?.nilai ? (
+                        <p className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            {nilaiERD.nilai}
+                        </p>
+                    ) : (
+                        <p className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            Belum dinilai
+                        </p>
+                    )}
+                </div>
             </div>
         </AuthenticatedLayout>
     );
