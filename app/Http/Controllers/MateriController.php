@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Atribut;
 use App\Models\ERDUsers;
 use App\Models\Materi;
+use App\Models\NilaiERD;
 use App\Models\Relasi;
 use App\Models\Table;
 use Illuminate\Http\Request;
@@ -32,7 +33,7 @@ class MateriController extends Controller
 
     public function studiKasus(Materi $materi)
     {
-        return Inertia::render('Materi/StudiKasus',[
+        return Inertia::render('Materi/StudiKasus', [
             'materi' => $materi,
         ]);
     }
@@ -203,6 +204,9 @@ class MateriController extends Controller
         // Get the authenticated user
         $authUser = Auth::user();
 
+        $nilaiERD = NilaiERD::where('materi_id', $materi->id)
+            ->where('user_id', $authUser->id)
+            ->first();
         // Fetch all saved ERD data for the authenticated user and specific materi
         $erdSave = ERDUsers::where('materi_id', $materi->id)
             ->where('user_id', $authUser->id)
@@ -220,6 +224,7 @@ class MateriController extends Controller
             'attributes' => $attributes,
             'relations' => $relations,
             'erdSave' => $erdSave, // Pass all the saved ERD data with parsed attributes
+            'nilaiERD' => $nilaiERD,
         ]);
     }
 

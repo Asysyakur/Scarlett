@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\ERDUsers;
 use App\Models\Materi;
+use App\Models\NilaiERD;
 use App\Models\Relasi;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -146,7 +147,7 @@ class ActivityController extends Controller
         // Muat relasi 'table' saat mengambil data ERDUser
         $erdUser = ERDUsers::where('user_id', $id)->with('table')->get();
         $erdRelation = Relasi::where('materi_id', $erdUser->first()->materi_id)->get();
-
+        $erdNilai = NilaiERD::where('user_id', $id)->first();
         // Sertakan nama tabel dalam respons
         $erdUser = $erdUser->map(function ($user) {
             return [
@@ -164,6 +165,7 @@ class ActivityController extends Controller
         return Inertia::render('Monitoring/ERD/Show', [
             'erdUser' => $erdUser,
             'erdRelation' => $erdRelation,
+            'erdNilai' => $erdNilai,
         ]);
     }
 }

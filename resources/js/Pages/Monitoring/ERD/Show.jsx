@@ -1,9 +1,80 @@
 import React, { useState, useEffect, useRef } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
+import axios from "axios";
+import Swal from "sweetalert2";
 
-const Show = ({ erdUser, erdRelation }) => {
-    
+const Show = ({ erdUser, erdRelation, erdNilai }) => {
+    const [comment, setComment] = useState("");
+    const [evaluation, setEvaluation] = useState("Belum Benar");
+
+    useEffect(() => {
+        if (erdNilai) {
+            setComment(erdNilai.catatan || "");
+            setEvaluation(erdNilai.nilai || "Belum Benar");
+        }
+    }, [erdNilai]);
+
+    const handleCommentChange = (e) => {
+        setComment(e.target.value);
+    };
+
+    const handleEvaluationChange = (e) => {
+        setEvaluation(e.target.value);
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // Kirim data ke backend
+        if (erdNilai) {
+            axios
+                .post(`/monitoring/erd/${erdUser[0].user_id}/edit`, {
+                    materi_id: erdUser[0].materi_id,
+                    catatan: comment,
+                    nilai: evaluation,
+                })
+                .then((response) => {
+                    // Tampilkan pesan sukses
+                    Swal.fire("Berhasil!", "Berhasil diubah", "success").then(
+                        () => {
+                            window.location.href = "/monitoring/erd";
+                        }
+                    );
+                })
+                .catch((error) => {
+                    Swal.fire(
+                        "Gagal!",
+                        "Terjadi kesalahan saat menghapus data.",
+                        "error"
+                    );
+                    console.error(error);
+                });
+        } else {
+            axios
+                .post(`/monitoring/erd/${erdUser[0].user_id}`, {
+                    materi_id: erdUser[0].materi_id,
+                    catatan: comment,
+                    nilai: evaluation,
+                })
+                .then((response) => {
+                    // Tampilkan pesan sukses
+                    Swal.fire("Berhasil!", "Berhasil dibuat", "success").then(
+                        () => {
+                            window.location.href = "/monitoring/erd";
+                        }
+                    );
+                })
+                .catch((error) => {
+                    Swal.fire(
+                        "Gagal!",
+                        "Terjadi kesalahan saat menghapus data.",
+                        "error"
+                    );
+                    console.error(error);
+                });
+        }
+    };
+
     const Connections = ({ relations, tables }) => {
         const [lines, setLines] = useState([]);
 
@@ -15,7 +86,7 @@ const Show = ({ erdUser, erdRelation }) => {
                 const toTable = tables.find(
                     (table) => table.table_id === relation.to
                 );
-                
+
                 if (fromTable?.ref?.current && toTable?.ref?.current) {
                     const fromRect =
                         fromTable.ref.current.getBoundingClientRect();
@@ -208,6 +279,54 @@ const Show = ({ erdUser, erdRelation }) => {
                         relations={erdRelation}
                         tables={tablesWithRefs}
                     />
+
+                    <form onSubmit={handleSubmit}>
+                        <div className="mt-6">
+                            <label
+                                className="block text-gray-700 text-sm font-bold mb-2"
+                                htmlFor="comment"
+                            >
+                                Catatan:
+                            </label>
+                            <textarea
+                                id="comment"
+                                value={comment}
+                                onChange={handleCommentChange}
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                rows="4"
+                            ></textarea>
+                        </div>
+
+                        <div className="mt-4">
+                            <label
+                                className="block text-gray-700 text-sm font-bold mb-2"
+                                htmlFor="evaluation"
+                            >
+                                Nilai ERD:
+                            </label>
+                            <select
+                                id="evaluation"
+                                value={evaluation}
+                                onChange={handleEvaluationChange}
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            >
+                                <option value="Belum Benar">Belum Benar</option>
+                                <option value="Benar Setelah Diperbaiki">
+                                    Benar Setelah Diperbaiki
+                                </option>
+                                <option value="Benar">Benar</option>
+                            </select>
+                        </div>
+
+                        <div className="mt-6">
+                            <button
+                                type="submit"
+                                className="bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                            >
+                                Submit
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </AuthenticatedLayout>

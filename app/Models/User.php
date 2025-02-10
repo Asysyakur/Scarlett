@@ -58,6 +58,11 @@ class User extends Authenticatable
         return $this->hasMany(Activity::class);
     }
 
+    public function nilaiERD()
+    {
+        return $this->hasMany(NilaiERD::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

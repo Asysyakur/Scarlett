@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GroupsController;
 use App\Http\Controllers\MateriController;
+use App\Http\Controllers\NilaiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\TestController;
@@ -35,6 +36,11 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
 
     Route::get('/monitoring/erd', [ActivityController::class, 'erdIndex'])->name('monitoring.erd');
     Route::get('/monitoring/erd/{id}', [ActivityController::class, 'erdShow'])->name('monitoring.erd.show');
+    Route::post('/monitoring/erd/{id}', [NilaiController::class, 'storeNilaiERD'])->name('monitoring.erd.storeNilaiERD');
+    Route::post('/monitoring/erd/{id}/edit', [NilaiController::class, 'editNilaiERD'])->name('monitoring.erd.editNilaiERD');
+
+    Route::post('/diagram/{id}', [NilaiController::class, 'storeERDGroup'])->name('diagram.storeERDGroup');
+    Route::post('/diagram/{id}/edit', [NilaiController::class, 'editERDGroup'])->name('diagram.editERDGroup');
 
     Route::post('/kelompok/storeMany', [GroupsController::class, 'storeMany'])->name('group.storeMany');
     Route::post('/kelompok/randomize', [GroupsController::class, 'randomize'])->name('group.randomize');
@@ -63,10 +69,6 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/diagram', function () {
-        return Inertia::render('DrawIo/Index');
-    })->name('diagram');
-    
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/start-screen-share', [TestController::class, 'startScreenShare']);
     Route::post('/stop-screen-share', [TestController::class, 'stopScreenShare']);

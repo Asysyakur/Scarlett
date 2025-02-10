@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Group;
 use App\Models\Groups;
+use App\Models\NilaiERDGroup;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -90,9 +91,11 @@ class GroupsController extends Controller
     public function indexDiagram()
     {
         $groups = Groups::with('users')->get();
+        $nilaiERDGroups = NilaiERDGroup::all();
 
         return inertia('DrawIo/Index', [
             'groups' => $groups,
+            'nilaiERDGroups' => $nilaiERDGroups,
         ]);
     }
 
