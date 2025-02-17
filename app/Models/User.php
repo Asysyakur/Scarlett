@@ -63,6 +63,26 @@ class User extends Authenticatable
         return $this->hasMany(NilaiERD::class);
     }
 
+    public function groupUser()
+    {
+        return $this->hasMany(GroupUser::class);
+    }
+
+    public function progressUser()
+    {
+        return $this->hasOne(Progress::class);
+    }
+
+    public function erdUsers()
+    {
+        return $this->hasMany(ERDUsers::class);
+    }
+
+    public function comment()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

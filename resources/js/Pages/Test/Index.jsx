@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 export default function Index({ tests: initialTests, auth }) {
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
-
+    console.log(auth);
     const [tests, setTests] = useState(initialTests || []);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -271,12 +271,26 @@ export default function Index({ tests: initialTests, auth }) {
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-2 text-center">
-                    {tests.map((test) => (
+                    {tests.map((test, index) => (
                         <div key={test.id} className="relative">
                             <Link
                                 key={test.id}
-                                href={`/test/${test.id}`}
-                                className="transform flex flex-col md:mx-24 mx-6 transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl"
+                                href={
+                                    auth.user.role_id === 1 ||
+                                    auth.progressUser.progress >= 3 ||
+                                    (auth.progressUser.progress >= 1 &&
+                                        index === 0)
+                                        ? `/test/${test.id}`
+                                        : "#"
+                                }
+                                className={`transform flex flex-col md:mx-24 mx-6 transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl ${
+                                    auth.user.role_id === 1 ||
+                                    auth.progressUser.progress >= 3 ||
+                                    (auth.progressUser.progress >= 1 &&
+                                        index === 0)
+                                        ? ""
+                                        : "pointer-events-none opacity-50"
+                                }`}
                             >
                                 <h2 className="text-2xl font-semibold text-gray-800 mb-4">
                                     {test.name}
@@ -286,7 +300,7 @@ export default function Index({ tests: initialTests, auth }) {
                                         test.id === 1 ? PretestIlu : PostestIlu
                                     }
                                     alt="Test Illustration"
-                                    className="mx-auto max-w-[200px] md:max-w-xs mb-4" // Reduced image size
+                                    className="mx-auto max-w-[200px] md:max-w-xs mb-4"
                                 />
                                 <p className="text-sm text-gray-600 mb-4">
                                     {test.description}
@@ -296,13 +310,13 @@ export default function Index({ tests: initialTests, auth }) {
                                 <div className="absolute top-2 right-2 flex flex-col gap-4">
                                     <button
                                         onClick={() => handleEditClick(test)}
-                                        className="  bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600"
+                                        className="bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600"
                                     >
                                         Edit
                                     </button>
                                     <button
                                         onClick={() => handleDelete(test)}
-                                        className="  bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
                                     >
                                         Delete
                                     </button>

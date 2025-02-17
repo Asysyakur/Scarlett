@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
+use App\Models\Comment;
 use App\Models\ERDUsers;
 use App\Models\Materi;
 use App\Models\NilaiERD;
@@ -64,12 +65,12 @@ class ActivityController extends Controller
         // and the time difference from the start to end time
         $totalDuration = now()->diffInSeconds($activity->start_time);  // Time from start to now
         $totalDuration = abs($totalDuration);
-        
+
         if ($activity->duration) {
             // If there was any duration from previous stop, add it to the new duration
             $totalDuration += $activity->duration;
         }
-        
+
         // Round the total duration to the nearest integer
         $totalDuration = round($totalDuration);
 
@@ -144,11 +145,13 @@ class ActivityController extends Controller
 
     public function erdShow($id)
     {
-        // Muat relasi 'table' saat mengambil data ERDUser
+        // Load the 'table' relationship when fetching ERDUser data
         $erdUser = ERDUsers::where('user_id', $id)->with('table')->get();
         $erdRelation = Relasi::where('materi_id', $erdUser->first()->materi_id)->get();
         $erdNilai = NilaiERD::where('user_id', $id)->first();
-        // Sertakan nama tabel dalam respons
+        $commentUser = Comment::with('user')->whereIn('erd_user_id', $erdUser->pluck('id'))->get();
+
+        // Include table name in the response
         $erdUser = $erdUser->map(function ($user) {
             return [
                 'id' => $user->id,
@@ -158,7 +161,7 @@ class ActivityController extends Controller
                 'attributes' => $user->attributes,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
-                'table_name' => $user->table->name, // Asumsikan kolom nama tabel adalah 'name'
+                'table_name' => $user->table->name, // Assuming the table name column is 'name'
             ];
         });
 
@@ -166,6 +169,48 @@ class ActivityController extends Controller
             'erdUser' => $erdUser,
             'erdRelation' => $erdRelation,
             'erdNilai' => $erdNilai,
+            'commentUser' => $commentUser,
         ]);
+    }
+
+    public function uploadScreenshot(Request $request)
+    {
+        if ($request->hasFile('screenshot')) {
+            $file = $request->file('screenshot');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('storage/screenshots'), $fileName);
+
+            return response()->json(['fileName' => $fileName], 200);
+        }
+
+        return response()->json(['error' => 'No file uploaded'], 400);
+    }
+
+    public function comment(Request $request)
+    {
+        $request->validate([
+            'comment' => 'required|string',
+            'erd_user_id' => 'required|exists:erd_users,id',
+        ]);
+        $user = Auth::user();
+        $comment = Comment::create([
+            'comment' => $request->comment,
+            'user_id' => $user->id,
+            'erd_user_id' => $request->erd_user_id,
+        ]);
+
+        return response()->json($comment);
+    }
+
+    public function deleteComment($commentId)
+    {
+        $comment = Comment::find($commentId);
+        if (!$comment) {
+            return response()->json(['message' => 'Comment not found'], 404);
+        }
+
+        $comment->delete();
+
+        return response()->json(['message' => 'Comment deleted successfully'], 200);
     }
 }

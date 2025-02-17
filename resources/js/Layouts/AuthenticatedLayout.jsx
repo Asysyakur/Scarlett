@@ -15,7 +15,8 @@ const baseNavigation = [
 ];
 
 export default function AuthenticatedLayout({ header, children }) {
-    const user = usePage().props.auth.user;
+    const { auth } = usePage().props;
+    const user = auth.user;
     const isAdmin = user.role_id === 1; // Adjust based on your role structure
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
@@ -35,19 +36,43 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:flex">
-                                {baseNavigation.map((item, index) => (
-                                    <NavLink
-                                        key={index}
-                                        href={item.href}
-                                        active={
-                                            window.location.pathname ===
-                                            item.href
-                                        }
-                                        className="text-white hover:text-yellow-500"
-                                    >
-                                        {item.name}
-                                    </NavLink>
-                                ))}
+                                {baseNavigation.map((item, index) => {
+                                    const isDisabled =
+                                        !isAdmin &&
+                                        ((item.name === "Test" &&
+                                            (!user?.progress_user ||
+                                                user.progress_user.progress <
+                                                    1)) ||
+                                            (item.name === "Materi" &&
+                                                (!user?.progress_user ||
+                                                    user.progress_user
+                                                        .progress < 2)) ||
+                                            (item.name === "Kelompok" &&
+                                                (!user?.progress_user ||
+                                                    user.progress_user
+                                                        .progress < 2)) ||
+                                            (item.name === "Diagram" &&
+                                                (!user?.progress_user ||
+                                                    user.progress_user
+                                                        .progress < 2)));
+                                    return (
+                                        <NavLink
+                                            key={index}
+                                            href={item.href}
+                                            active={
+                                                window.location.pathname ===
+                                                item.href
+                                            }
+                                            className={`text-white hover:text-yellow-500 ${
+                                                isDisabled
+                                                    ? "pointer-events-none opacity-50"
+                                                    : ""
+                                            }`}
+                                        >
+                                            {item.name}
+                                        </NavLink>
+                                    );
+                                })}
 
                                 {/* Render "Monitoring" link if user is admin */}
                                 {isAdmin && (
@@ -164,18 +189,38 @@ export default function AuthenticatedLayout({ header, children }) {
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
-                        {baseNavigation.map((item, index) => (
-                            <ResponsiveNavLink
-                                key={index}
-                                href={item.href}
-                                active={route().current(item.href)}
-                                className="text-amber-200 hover:text-yellow-500"
-                            >
-                                {item.name}
-                            </ResponsiveNavLink>
-                        ))}
+                        {baseNavigation.map((item, index) => {
+                            const isDisabled =
+                                !isAdmin &&
+                                ((item.name === "Test" &&
+                                    (!user?.progress_user ||
+                                        user.progress_user.progress < 1)) ||
+                                    (item.name === "Materi" &&
+                                        (!user?.progress_user ||
+                                            user.progress_user.progress < 2)) ||
+                                    (item.name === "Kelompok" &&
+                                        (!user?.progress_user ||
+                                            user.progress_user.progress < 2)) ||
+                                    (item.name === "Diagram" &&
+                                        (!user?.progress_user ||
+                                            user.progress_user.progress < 2)));
+                            return (
+                                <ResponsiveNavLink
+                                    key={index}
+                                    href={item.href}
+                                    active={route().current(item.href)}
+                                    className={`text-amber-200 hover:text-yellow-500 ${
+                                        isDisabled
+                                            ? "pointer-events-none opacity-50"
+                                            : ""
+                                    }`}
+                                >
+                                    {item.name}
+                                </ResponsiveNavLink>
+                            );
+                        })}
 
-                        {/* Render "Mentoring" link for admin in mobile nav */}
+                        {/* Render "Monitoring" link for admin in mobile nav */}
                         {isAdmin && (
                             <ResponsiveNavLink
                                 href="/monitoring"
@@ -199,31 +244,35 @@ export default function AuthenticatedLayout({ header, children }) {
 
             <main>{children}</main>
             {/* Footer */}
-            <footer className="p-4 mt-10 bg-gray-100">
+            <footer className="p-8 mt-10 bg-gray-100">
                 <div className="text-center text-lg text-gray-700 p-6">
-                    <div className="font-bold mb-2">Need Help?</div>
-                    <div className="text-lg">Irham Jundurrahmaan</div>
-                    <div className="mt-2">
-                        <span className="font-semibold">Contact Us:</span>
-                        <div className="flex justify-center items-center space-x-4 mt-1">
+                    <div className="font-bold text-2xl mb-4">Need Help?</div>
+                    <div className="text-xl mb-2">Irham Jundurrahmaan</div>
+                    <div className="mt-4">
+                        <span className="font-semibold text-lg">
+                            Contact Us:
+                        </span>
+                        <div className="flex justify-center items-center space-x-8 mt-2">
                             <div className="flex items-center space-x-2">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 24 24"
                                     fill="currentColor"
-                                    className="w-5 h-5 text-gray-500"
+                                    className="w-6 h-6 text-gray-500"
                                 >
                                     <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z" />
                                     <path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
                                 </svg>
-                                <span>irhammika47@upi.edu</span>
+                                <span className="text-lg">
+                                    irhammika47@upi.edu
+                                </span>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 24 24"
                                     fill="currentColor"
-                                    className="w-5 h-5 text-gray-500"
+                                    className="w-6 h-6 text-gray-500"
                                 >
                                     <path
                                         fillRule="evenodd"
@@ -231,9 +280,30 @@ export default function AuthenticatedLayout({ header, children }) {
                                         clipRule="evenodd"
                                     />
                                 </svg>
-                                <span>081322547572</span>
+                                <span className="text-lg">081322547572</span>
                             </div>
                         </div>
+                    </div>
+                    <div className="mt-8">
+                        <div className="font-bold text-2xl mb-4">
+                            Special Thanks to:
+                        </div>
+                        <ul className="flex flex-wrap justify-center space-x-4 text-lg">
+                            <li>Image and Animation Resource: storyset on Freepik</li>
+                            <li>Workspace: DrawIO</li>
+                            <li>
+                                Video Material: Decomplexify, Ilkom UNU Blitar
+                            </li>
+                            <li>
+                                Database Project Guideline: Hogan, R. (2018). A
+                                practical guide to database design. CRC Press.
+                            </li>
+                            <li>Website and Test Tools: Google LLC</li>
+                            <li>
+                                Material Reference: SMK BPI Bandung, Metrodata
+                                Academy
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </footer>

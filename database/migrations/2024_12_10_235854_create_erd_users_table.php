@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('table_id')->constrained('erd_tables')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->json('attributes')->nullable();
+            $table->string('screenshoot')->nullable();
             $table->timestamps();
         });
     }

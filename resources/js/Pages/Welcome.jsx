@@ -1,14 +1,75 @@
 import { Link, Head } from "@inertiajs/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { FaCheckCircle } from "react-icons/fa";
+import DashboardImg from "./Assets/Dash.jpg";
+import Pretest from "./Assets/pre.jpg";
+import MateriImg from "./Assets/Mat.jpg";
+import StudiImg from "./Assets/stud.jpg";
+import DndImg from "./Assets/dnd.jpg";
+import KelompokImg from "./Assets/kel.jpg";
+import DiagramImg from "./Assets/disku.jpg";
+import ErdImg from "./Assets/erd.jpg";
+import Posttest from "./Assets/post.jpg";
+
+const steps = [
+    {
+        title: "1. Daftar akun baru atau masuk dengan akun yang sudah ada.",
+    },
+    {
+        title: "2. Setelah masuk bacalah Capaian Pembelajaran, Tujuan Pembelajaran dan Identitas Pembelajaran",
+    },
+    {
+        title: "3. Lakukan presensi pada menu yang tersedia di dashboard",
+        image: DashboardImg,
+    },
+    {
+        title: "4. Setelah absen kerjakanlah pretest di halaman test berikut ini",
+        image: Pretest,
+    },
+    {
+        title: "5. Setelah melakukan absensi bukalah halaman materi dan pelajari materi, lakukan eksplorasi pada halaman materi seperti membuka halaman konten, menonton video dan mempelajari file materi",
+        image: MateriImg,
+    },
+    {
+        title: "6. Setelah mempelajari materi awal, klik selanjutnya untuk mempelajari studi kasus yang akan dikerjakan",
+        image: StudiImg,
+    },
+    {
+        title: "7. Setelah mempelajari studi kasus isilah mini-game drag and drop dengan benar dan sesuai jawaban kamu terhadap studi kasus tersebut",
+        image: DndImg,
+    },
+    {
+        title: "8. Periksalah halaman kelompok untuk mengetahui pembagian kelompok dan ketua kelompok kamu",
+        image: KelompokImg,
+    },
+    {
+        title: "9. Bukalah halaman diagram dan diskusikanlah pekerjaanmu dan teman sekelompokmu pada mini game drag and drop sebelumnya, kamu bisa mengkomentari hasilmu atau temanmu",
+        image: DiagramImg,
+    },
+    {
+        title: "10. Sekarang bangunlah ERD kelompokmu, diskusikanlah pembagian tugas dan penunjukannya dengan ketua kelompokmu. Setelah itu buatlah ERD kelompok pada DrawIO",
+        image: ErdImg,
+    },
+    {
+        title: "11. Setelah membangun dan mempresentasikan ERD kerjakanlah posttest di halaman test berikut ini",
+        image: Posttest,
+    },
+];
 
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
     const berandaRef = useRef(null);
     const tentangRef = useRef(null);
     const fiturRef = useRef(null);
+    const panduanRef = useRef(null);
 
     const scrollToSection = (ref) => {
         ref.current.scrollIntoView({ behavior: "smooth" });
+    };
+
+    const [openStep, setOpenStep] = useState(null);
+
+    const toggleStep = (index) => {
+        setOpenStep(openStep === index ? null : index);
     };
 
     return (
@@ -26,29 +87,31 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     </div>
                                 </Link>
                                 <div className="flex space-x-8 text-xs md:text-base text-center">
-                                    {["beranda", "fitur", "tentang"].map(
-                                        (section) => (
-                                            <button
-                                                key={section}
-                                                onClick={() => {
-                                                    const refMap = {
-                                                        beranda: berandaRef,
-                                                        tentang: tentangRef,
-                                                        fitur: fiturRef,
-                                                    };
-                                                    scrollToSection(
-                                                        refMap[section]
-                                                    );
-                                                }}
-                                                className="text-white hover:text-yellow-500 font-semibold cursor-pointer transition-all duration-500 ease-in-out transform hover:scale-105"
-                                            >
-                                                {section
-                                                    .charAt(0)
-                                                    .toUpperCase() +
-                                                    section.slice(1)}
-                                            </button>
-                                        )
-                                    )}
+                                    {[
+                                        "beranda",
+                                        "fitur",
+                                        "tentang",
+                                        "panduan",
+                                    ].map((section) => (
+                                        <button
+                                            key={section}
+                                            onClick={() => {
+                                                const refMap = {
+                                                    beranda: berandaRef,
+                                                    tentang: tentangRef,
+                                                    fitur: fiturRef,
+                                                    panduan: panduanRef,
+                                                };
+                                                scrollToSection(
+                                                    refMap[section]
+                                                );
+                                            }}
+                                            className="text-white hover:text-yellow-500 font-semibold cursor-pointer transition-all duration-500 ease-in-out transform hover:scale-105"
+                                        >
+                                            {section.charAt(0).toUpperCase() +
+                                                section.slice(1)}
+                                        </button>
+                                    ))}
                                 </div>
                                 <div className="text-end">
                                     {auth.user ? (
@@ -210,32 +273,71 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                 </div>
             </div>
 
+            <div ref={panduanRef} className="pt-20 bg-white">
+                <h2 className="text-4xl font-bold text-gray-800 text-center mb-8">
+                    Panduan Penggunaan
+                </h2>
+                <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                    <div className="max-w-7xl mx-auto px-6 py-4 bg-red-700 text-white rounded-lg shadow-lg">
+                        <p className="mb-4 text-lg">
+                            Selamat datang di aplikasi kami! Berikut adalah
+                            panduan singkat untuk membantu Anda memulai:
+                        </p>
+                        <ol className="list-decimal list-inside mb-4">
+                            {steps.map((step, index) => (
+                                <div key={index} className="mb-2 text-lg">
+                                    <button
+                                        onClick={() => toggleStep(index)}
+                                        className="w-full text-left font-bold"
+                                    >
+                                        {step.title}
+                                    </button>
+                                    {step.image && openStep === index && (
+                                        <div className="mt-2">
+                                            <img
+                                                src={step.image}
+                                                alt={step.title}
+                                                className="mb-2"
+                                            />
+                                            <p>{step.description}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </ol>
+                    </div>
+                </div>
+            </div>
             {/* Footer */}
-            <footer className="p-4 mt-10 bg-gray-100">
+            <footer className="p-8 mt-10 bg-gray-100">
                 <div className="text-center text-lg text-gray-700 p-6">
-                    <div className="font-bold mb-2">Need Help?</div>
-                    <div className="text-lg">Irham Jundurrahmaan</div>
-                    <div className="mt-2">
-                        <span className="font-semibold">Contact Us:</span>
-                        <div className="flex justify-center items-center space-x-4 mt-1">
+                    <div className="font-bold text-2xl mb-4">Need Help?</div>
+                    <div className="text-xl mb-2">Irham Jundurrahmaan</div>
+                    <div className="mt-4">
+                        <span className="font-semibold text-lg">
+                            Contact Us:
+                        </span>
+                        <div className="flex justify-center items-center space-x-8 mt-2">
                             <div className="flex items-center space-x-2">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 24 24"
                                     fill="currentColor"
-                                    className="w-5 h-5 text-gray-500"
+                                    className="w-6 h-6 text-gray-500"
                                 >
                                     <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z" />
                                     <path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
                                 </svg>
-                                <span>irhammika47@upi.edu</span>
+                                <span className="text-lg">
+                                    irhammika47@upi.edu
+                                </span>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 24 24"
                                     fill="currentColor"
-                                    className="w-5 h-5 text-gray-500"
+                                    className="w-6 h-6 text-gray-500"
                                 >
                                     <path
                                         fillRule="evenodd"
@@ -243,9 +345,30 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                         clipRule="evenodd"
                                     />
                                 </svg>
-                                <span>081322547572</span>
+                                <span className="text-lg">081322547572</span>
                             </div>
                         </div>
+                    </div>
+                    <div className="mt-8">
+                        <div className="font-bold text-2xl mb-4">
+                            Special Thanks to:
+                        </div>
+                        <ul className="flex flex-wrap justify-center space-x-4 text-lg">
+                            <li>Image and Animation Resource: storyset on Freepik</li>
+                            <li>Workspace: DrawIO</li>
+                            <li>
+                                Video Material: Decomplexify, Ilkom UNU Blitar
+                            </li>
+                            <li>
+                                Database Project Guideline: Hogan, R. (2018). A
+                                practical guide to database design. CRC Press.
+                            </li>
+                            <li>Website and Test Tools: Google LLC</li>
+                            <li>
+                                Material Reference: SMK BPI Bandung, Metrodata
+                                Academy
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </footer>

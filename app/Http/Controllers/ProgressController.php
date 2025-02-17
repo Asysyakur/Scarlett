@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ProgressController extends Controller
@@ -19,4 +20,55 @@ class ProgressController extends Controller
 
         return redirect(route('presensi', absolute: false));
     }
+
+    public function updateProgress(Request $request)
+    {
+        $request->validate([
+            'progress' => 'required|integer|min:0',
+        ]);
+
+        $user = $request->user();
+        if(!$user->progressUser) {
+            $user->progressUser()->create([
+                'progress' => $request->progress,
+            ]);
+            return;
+        }
+        $currentProgress = $user->progressUser->progress;
+
+        // Check if the requested progress is less than the current progress
+        if ($request->progress > $currentProgress) {
+            // Update the progress for the authenticated user
+            $user->progressUser()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['progress' => $request->progress]
+            );
+        }
+    }
+
+    public function updateProgressId(Request $request, $id)
+    {
+        $request->validate([
+            'progress' => 'required|integer|min:0',
+        ]);
+
+        $user = User::find($id);
+        if(!$user->progressUser) {
+            $user->progressUser()->create([
+                'progress' => $request->progress,
+            ]);
+            return;
+        }
+        $currentProgress = $user->progressUser->progress;
+
+        // Check if the requested progress is less than the current progress
+        if ($request->progress > $currentProgress) {
+            // Update the progress for the authenticated user
+            $user->progressUser()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['progress' => $request->progress]
+            );
+        }
+    }
+
 }

@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
+use App\Models\ERDUsers;
 use App\Models\Group;
 use App\Models\Groups;
+use App\Models\GroupUser;
+use App\Models\NilaiERD;
 use App\Models\NilaiERDGroup;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class GroupsController extends Controller
@@ -16,10 +21,12 @@ class GroupsController extends Controller
         // Retrieve all users and groups
         $users = User::where('role_id', 2)->get();
         $groups = Groups::with('users')->get();
+        $usersGroups = GroupUser::with('user')->get();
 
         return inertia('Group/Index', [
             'users' => $users,
             'groups' => $groups,
+            'usersGroups' => $usersGroups,
         ]);
     }
 
@@ -90,12 +97,31 @@ class GroupsController extends Controller
 
     public function indexDiagram()
     {
+        $user = Auth::user();
         $groups = Groups::with('users')->get();
         $nilaiERDGroups = NilaiERDGroup::all();
+        $commentUser = Comment::with('user')->get();
+        $usersGroups = GroupUser::with('user')->get();
+
+        // Find the group that includes the logged-in user
+        $userGroup = GroupUser::where('user_id', $user->id)->first();
+
+        if ($userGroup) {
+            // Get all user IDs in the same group
+            $groupUserIds = GroupUser::where('group_id', $userGroup->group_id)->pluck('user_id');
+
+            // Get ERDUsers for the logged-in user and users in the same group
+            $erdUser = ERDUsers::whereIn('user_id', $groupUserIds)->get();
+        } else {
+            $erdUser = collect(); // Empty collection if the user is not in any group
+        }
 
         return inertia('DrawIo/Index', [
             'groups' => $groups,
             'nilaiERDGroups' => $nilaiERDGroups,
+            'erdUser' => $erdUser,
+            'commentUser' => $commentUser,
+            'usersGroups' => $usersGroups,
         ]);
     }
 
@@ -115,5 +141,49 @@ class GroupsController extends Controller
         Groups::find($group)->users()->detach($id);
 
         // return back()->with('success', 'Student removed from group successfully!');
+    }
+
+    public function setLeader($group, $id)
+    {
+        $group = Groups::find($group);
+
+        // Set is_leader to false for all users in the group
+        $group->users()->updateExistingPivot($group->users()->pluck('users.id')->toArray(), ['is_leader' => false]);
+
+        // Set is_leader to true for the new leader
+        $group->users()->updateExistingPivot($id, ['is_leader' => true]);
+
+        return back()->with('success', 'Group leader updated successfully!');
+    }
+
+    public function removeLeader($group, $id)
+    {
+        $group = Groups::find($group);
+        $group->users()->updateExistingPivot($id, ['is_leader' => false]);
+
+        return back()->with('success', 'Group leader removed successfully!');
+    }
+
+    public function storeTask(Request $request, $id)
+    {
+        $request->validate([
+            'task' => 'required|string',
+        ]);
+
+        $group = NilaiERDGroup::where('group_id', $id)->first();
+
+        if ($group) {
+            $group->update([
+                'task' => $request->task,
+            ]);
+            $group->save();
+        } else {
+            NilaiERDGroup::create([
+                'group_id' => $id,
+                'task' => $request->task,
+            ]);
+        }
+
+        return back()->with('success', 'Task added successfully!');
     }
 }

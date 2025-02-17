@@ -7,9 +7,10 @@ import React, {
 } from "react";
 import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import Swal from "sweetalert2";
 import { useActivity } from "@/Contexts/ActivityContext";
+import html2canvas from "html2canvas";
 
 const GameBoard = ({
     tables,
@@ -780,22 +781,53 @@ const GameBoard = ({
                 attributes: table.attributes, // Assuming attributes is an array
             }));
 
-            // Example: Making an API call to save the table data
-            const response = await axios.post(
-                "/materi/drag-and-drop/save",
-                payload
-            );
+            // Capture screenshot of the entire div
+            const element = document.getElementById("tables-container");
+            if (element) {
+                const canvas = await html2canvas(element);
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append("screenshot", blob, "screenshot.png");
 
-            // Check if the response is successful
-            if (response.status === 200) {
-                // Show success alert
-                await Swal.fire({
-                    icon: "success",
-                    title: "Berhasil!",
-                    text: "ERDmu berhasil disimpan.",
-                    timer: 2000, // Dismiss after 2 seconds
-                    showConfirmButton: false,
-                });
+                    // Upload the screenshot to the server
+                    const uploadResponse = await axios.post(
+                        "/upload-screenshot",
+                        formData,
+                        {
+                            headers: {
+                                "Content-Type": "multipart/form-data",
+                            },
+                        }
+                    );
+
+                    // Check if the upload was successful
+                    if (uploadResponse.status === 200) {
+                        const screenshotFileName = uploadResponse.data.fileName;
+
+                        // Include screenshot file name in the payload
+                        payload.forEach((table) => {
+                            table.screenshot = screenshotFileName;
+                        });
+
+                        // Save the table data along with the screenshot file name
+                        const response = await axios.post(
+                            "/materi/drag-and-drop/save",
+                            payload
+                        );
+
+                        // Check if the response is successful
+                        if (response.status === 200) {
+                            // Show success alert
+                            await Swal.fire({
+                                icon: "success",
+                                title: "Berhasil!",
+                                text: "ERDmu berhasil disimpan.",
+                                timer: 2000, // Dismiss after 2 seconds
+                                showConfirmButton: false,
+                            });
+                        }
+                    }
+                }, "image/png");
             }
         } catch (error) {
             // Handle errors
@@ -884,10 +916,17 @@ const GameBoard = ({
                         </div>
                     </div>
                     <div className="flex flex-col gap-6">
-                        <div className={`grid gap-24 grid-cols-3`}>
+                        <div
+                            id="tables-container"
+                            className={`grid gap-24 grid-cols-3`}
+                        >
                             {tableData.map((table) => (
                                 <DroppableTable key={table.id} table={table} />
                             ))}
+                            <Connections
+                                relations={relationsData}
+                                tables={tableData}
+                            />
                         </div>
 
                         <div className="w-full flex justify-center">
@@ -906,7 +945,6 @@ const GameBoard = ({
                         </div>
                     </div>
 
-                    <Connections relations={relationsData} tables={tableData} />
                     {/* Modal for adding/editing materi */}
                     {isModalOpen && (
                         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">

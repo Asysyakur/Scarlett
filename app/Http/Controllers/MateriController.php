@@ -46,11 +46,13 @@ class MateriController extends Controller
             'tables.*.table_id' => 'required|exists:erd_tables,id',
             'tables.*.user_id' => 'required|exists:users,id',
             'tables.*.attributes' => 'nullable|array', // You can validate attributes if needed
+            'tables.*.screenshot' => 'nullable|string',
         ]);
 
         // Loop through the tables and save or update each one
         try {
             foreach ($request->all() as $table) {
+                $screenshotPath = 'screenshots/' . $table['screenshot'];
                 // Check if the record exists based on materi_id, table_id, and user_id
                 $existingRecord = ERDUsers::where('materi_id', $table['materi_id'])
                     ->where('table_id', $table['table_id'])
@@ -61,6 +63,7 @@ class MateriController extends Controller
                     // If the record exists, update it
                     $existingRecord->update([
                         'attributes' => json_encode($table['attributes']), // Update attributes
+                        'screenshoot' => $screenshotPath,
                     ]);
                 } else {
                     // If the record doesn't exist, create a new one
@@ -69,6 +72,7 @@ class MateriController extends Controller
                         'table_id' => $table['table_id'],
                         'user_id' => $table['user_id'],
                         'attributes' => json_encode($table['attributes']), // Store attributes as JSON
+                        'screenshoot' => $screenshotPath,
                     ]);
                 }
             }

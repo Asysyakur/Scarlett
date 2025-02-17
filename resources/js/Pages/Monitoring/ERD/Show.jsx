@@ -4,9 +4,10 @@ import { Head, Link } from "@inertiajs/react";
 import axios from "axios";
 import Swal from "sweetalert2";
 
-const Show = ({ erdUser, erdRelation, erdNilai }) => {
+const Show = ({ erdUser, erdRelation, erdNilai, commentUser }) => {
     const [comment, setComment] = useState("");
     const [evaluation, setEvaluation] = useState("Belum Benar");
+    const [comments, setComments] = useState(commentUser);
 
     useEffect(() => {
         if (erdNilai) {
@@ -23,56 +24,85 @@ const Show = ({ erdUser, erdRelation, erdNilai }) => {
         setEvaluation(e.target.value);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Kirim data ke backend
-        if (erdNilai) {
-            axios
-                .post(`/monitoring/erd/${erdUser[0].user_id}/edit`, {
-                    materi_id: erdUser[0].materi_id,
-                    catatan: comment,
-                    nilai: evaluation,
-                })
-                .then((response) => {
-                    // Tampilkan pesan sukses
-                    Swal.fire("Berhasil!", "Berhasil diubah", "success").then(
-                        () => {
-                            window.location.href = "/monitoring/erd";
-                        }
-                    );
-                })
-                .catch((error) => {
-                    Swal.fire(
-                        "Gagal!",
-                        "Terjadi kesalahan saat menghapus data.",
-                        "error"
-                    );
-                    console.error(error);
-                });
-        } else {
-            axios
-                .post(`/monitoring/erd/${erdUser[0].user_id}`, {
-                    materi_id: erdUser[0].materi_id,
-                    catatan: comment,
-                    nilai: evaluation,
-                })
-                .then((response) => {
-                    // Tampilkan pesan sukses
-                    Swal.fire("Berhasil!", "Berhasil dibuat", "success").then(
-                        () => {
-                            window.location.href = "/monitoring/erd";
-                        }
-                    );
-                })
-                .catch((error) => {
-                    Swal.fire(
-                        "Gagal!",
-                        "Terjadi kesalahan saat menghapus data.",
-                        "error"
-                    );
-                    console.error(error);
-                });
+
+        const payload = {
+            materi_id: erdUser[0].materi_id,
+            catatan: comment,
+            nilai: evaluation,
+        };
+
+        try {
+            if (erdNilai) {
+                await axios.post(
+                    `/monitoring/erd/${erdUser[0].user_id}/edit`,
+                    payload
+                );
+            } else {
+                await axios.post(
+                    `/monitoring/erd/${erdUser[0].user_id}`,
+                    payload
+                );
+            }
+
+            await axios.post(`/update-progress/${erdUser[0].user_id}`, {
+                progress: 3,
+            });
+
+            Swal.fire(
+                "Berhasil!",
+                "Data berhasil disimpan dan progress diperbarui",
+                "success"
+            ).then(() => {
+                window.location.href = "/monitoring/erd";
+            });
+        } catch (error) {
+            Swal.fire(
+                "Gagal!",
+                "Terjadi kesalahan saat memproses data.",
+                "error"
+            );
+            console.error("Error:", error);
         }
+    };
+
+    const handleDeleteComment = (commentId) => {
+        Swal.fire({
+            title: "Yakin ingin menghapus?",
+            text: "Komentar ini akan dihapus secara permanen!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Ya, hapus!",
+            cancelButtonText: "Batal",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios
+                    .delete(`/monitoring/erd/comment/${commentId}`)
+                    .then((response) => {
+                        setComments(
+                            comments.filter(
+                                (comment) => comment.id !== commentId
+                            )
+                        );
+                        Swal.fire(
+                            "Berhasil!",
+                            "Komentar berhasil dihapus",
+                            "success"
+                        );
+                    })
+                    .catch((error) => {
+                        Swal.fire(
+                            "Gagal!",
+                            "Terjadi kesalahan saat menghapus komentar.",
+                            "error"
+                        );
+                        console.error(error);
+                    });
+            }
+        });
     };
 
     const Connections = ({ relations, tables }) => {
@@ -327,6 +357,35 @@ const Show = ({ erdUser, erdRelation, erdNilai }) => {
                             </button>
                         </div>
                     </form>
+
+                    <div className="mt-8">
+                        <h3 className="text-xl font-semibold mb-4">Komentar</h3>
+                        <div className="mt-4">
+                            {comments.map((comment) => (
+                                <div
+                                    key={comment.id}
+                                    className="mb-4 p-4 border rounded shadow flex justify-between"
+                                >
+                                    <div className="">
+                                        <div className="font-semibold">
+                                            {comment.user.name}
+                                        </div>
+                                        <div className="text-gray-600">
+                                            {comment.comment}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() =>
+                                            handleDeleteComment(comment.id)
+                                        }
+                                        className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import Peer from "peerjs";
 import axios from "axios";
 import WarnigIlu from "./assets/Warning.svg";
@@ -8,10 +8,12 @@ import { useActivity } from "@/Contexts/ActivityContext";
 
 function StudentScreenShare({ auth, test }) {
     const [isSharing, setIsSharing] = useState(false);
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+    const [remainingTime, setRemainingTime] = useState(60);
+    const [showTooltip, setShowTooltip] = useState(false);
     const streamRef = useRef(null);
     const peerRef = useRef(null);
-    const { startActivity, stopActivity, currentPath, changePath } =
-        useActivity();
+    const { startActivity, stopActivity, currentPath, changePath } = useActivity();
 
     useEffect(() => {
         const handleVisibilityChange = async () => {
@@ -27,22 +29,23 @@ function StudentScreenShare({ auth, test }) {
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
+        const timer = setInterval(() => {
+            setRemainingTime((prevTime) => {
+                if (prevTime <= 1) {
+                    clearInterval(timer);
+                    setIsButtonDisabled(false);
+                    return 0;
+                }
+                return prevTime - 1;
+            });
+        }, 1000);
+
         return () => {
-            document.removeEventListener(
-                "visibilitychange",
-                handleVisibilityChange
-            );
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            clearInterval(timer);
             stopActivity(); // Ensure stopActivity completes before cleanup
         };
-    }, [currentPath]);
-
-    useEffect(() => {
-        const savedIsSharing = sessionStorage.getItem("isSharing");
-        const savedPeerId = sessionStorage.getItem("peerId");
-        if (savedIsSharing === "true" && savedPeerId) {
-            resumeScreenShare(savedPeerId);
-        }
-    }, []);
+    }, [currentPath, startActivity, stopActivity, changePath]);
 
     const startScreenShare = async () => {
         try {
@@ -51,7 +54,7 @@ function StudentScreenShare({ auth, test }) {
                 audio: false,
             });
 
-            // Tambahkan event listener untuk menghentikan screen share saat stream berakhir
+            // Add event listener to stop screen share when stream ends
             stream.getTracks().forEach((track) => {
                 track.onended = () => {
                     stopScreenShare();
@@ -78,19 +81,14 @@ function StudentScreenShare({ auth, test }) {
                         const localStream = streamRef.current.srcObject;
                         call.answer(localStream);
                         call.on("stream", function (remoteStream) {
-                            const remoteVideo =
-                                document.getElementById("remote-video");
+                            const remoteVideo = document.getElementById("remote-video");
                             if (remoteVideo) {
                                 remoteVideo.srcObject = remoteStream;
                             }
                         });
-                        call.on("error", (err) =>
-                            console.error("Error during call:", err)
-                        );
+                        call.on("error", (err) => console.error("Error during call:", err));
                     } else {
-                        console.log(
-                            "No local stream available to answer the call."
-                        );
+                        console.log("No local stream available to answer the call.");
                     }
                 });
             });
@@ -112,19 +110,14 @@ function StudentScreenShare({ auth, test }) {
                     const localStream = streamRef.current.srcObject;
                     call.answer(localStream);
                     call.on("stream", function (remoteStream) {
-                        const remoteVideo =
-                            document.getElementById("remote-video");
+                        const remoteVideo = document.getElementById("remote-video");
                         if (remoteVideo) {
                             remoteVideo.srcObject = remoteStream;
                         }
                     });
-                    call.on("error", (err) =>
-                        console.error("Error during call:", err)
-                    );
+                    call.on("error", (err) => console.error("Error during call:", err));
                 } else {
-                    console.log(
-                        "No local stream available to answer the call."
-                    );
+                    console.log("No local stream available to answer the call.");
                 }
             });
 
@@ -149,10 +142,22 @@ function StudentScreenShare({ auth, test }) {
         sessionStorage.setItem("isSharing", "false");
         sessionStorage.removeItem("peerId");
 
-        // Kirim notifikasi ke server bahwa screen sharing telah dihentikan
+        // Send notification to server that screen sharing has stopped
         axios.post("/stop-screen-share", {
             studentId: auth.user.id,
         });
+    };
+
+    const handleNextClick = async () => {
+        if(isButtonDisabled) {
+            return;
+        }
+        try {
+            await axios.post("/update-progress", { progress: 2 });
+            router.visit("/test"); // Adjust this route as needed
+        } catch (error) {
+            console.error("Error updating progress:", error);
+        }
     };
 
     return (
@@ -209,6 +214,24 @@ function StudentScreenShare({ auth, test }) {
                         muted
                         className="border rounded-lg w-full h-64"
                     ></video>
+                </div>
+
+                <div className="mt-8 text-center relative">
+                    <button
+                        onClick={handleNextClick}
+                        onMouseEnter={() => setShowTooltip(true)}
+                        onMouseLeave={() => setShowTooltip(false)}
+                        className={`bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                            isButtonDisabled ? "opacity-50" : ""
+                        }`}
+                    >
+                        Next
+                    </button>
+                    {showTooltip && isButtonDisabled && (
+                        <div className="absolute -top-14 left-1/2 transform -translate-x-1/2 mt-2 p-2 bg-gray-700 text-white text-sm rounded">
+                            Sisa waktu: {remainingTime} detik
+                        </div>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>
