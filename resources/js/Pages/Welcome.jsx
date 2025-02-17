@@ -1,14 +1,47 @@
 import { Link, Head } from "@inertiajs/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { FaCheckCircle } from "react-icons/fa";
+import DashboardImg from "./Assets/DashboardScar.png";
+import Pretest from "./Assets/pretestScar.png";
+import Posttest from "./Assets/posttest.png";
+import materiImg from "./Assets/MateriSCar.png";
+
+const steps = [
+    {
+        title: "Langkah 1: Daftar akun baru atau masuk dengan akun yang sudah ada.",
+    },
+    {
+        title: "Langkah 2: Setelah masuk, lakukan presensi pada banner yang tersedia di dashboard.",
+        image: DashboardImg,
+    },
+    {
+        title: "Langkah 3: Setelah melakukan Presensi, navigasi ke halama test untuk melakukan pretest.",
+        image: Pretest,
+    },
+    {
+        title: "Langkah 4: Setelah melakukan pretest, ikuti arahan guru untuk mempelajari materi yang telah disediakan.",
+        image: materiImg,
+    },
+    {
+        title: "Langkah 5: Setelah menyelesaikan semua alur pembelajaran, lakukan post-test untuk mengukur pemahaman Anda.",
+        image: Posttest,
+    },
+];
 
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
     const berandaRef = useRef(null);
     const tentangRef = useRef(null);
     const fiturRef = useRef(null);
+    const panduanRef = useRef(null);
 
     const scrollToSection = (ref) => {
         ref.current.scrollIntoView({ behavior: "smooth" });
+    };
+
+    const [openStep, setOpenStep] = useState(null);
+
+    const toggleStep = (index) => {
+        setOpenStep(openStep === index ? null : index);
     };
 
     return (
@@ -26,29 +59,31 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     </div>
                                 </Link>
                                 <div className="flex space-x-8 text-xs md:text-base text-center">
-                                    {["beranda", "fitur", "tentang"].map(
-                                        (section) => (
-                                            <button
-                                                key={section}
-                                                onClick={() => {
-                                                    const refMap = {
-                                                        beranda: berandaRef,
-                                                        tentang: tentangRef,
-                                                        fitur: fiturRef,
-                                                    };
-                                                    scrollToSection(
-                                                        refMap[section]
-                                                    );
-                                                }}
-                                                className="text-white hover:text-yellow-500 font-semibold cursor-pointer transition-all duration-500 ease-in-out transform hover:scale-105"
-                                            >
-                                                {section
-                                                    .charAt(0)
-                                                    .toUpperCase() +
-                                                    section.slice(1)}
-                                            </button>
-                                        )
-                                    )}
+                                    {[
+                                        "beranda",
+                                        "fitur",
+                                        "tentang",
+                                        "panduan",
+                                    ].map((section) => (
+                                        <button
+                                            key={section}
+                                            onClick={() => {
+                                                const refMap = {
+                                                    beranda: berandaRef,
+                                                    tentang: tentangRef,
+                                                    fitur: fiturRef,
+                                                    panduan: panduanRef,
+                                                };
+                                                scrollToSection(
+                                                    refMap[section]
+                                                );
+                                            }}
+                                            className="text-white hover:text-yellow-500 font-semibold cursor-pointer transition-all duration-500 ease-in-out transform hover:scale-105"
+                                        >
+                                            {section.charAt(0).toUpperCase() +
+                                                section.slice(1)}
+                                        </button>
+                                    ))}
                                 </div>
                                 <div className="text-end">
                                     {auth.user ? (
@@ -210,6 +245,41 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                 </div>
             </div>
 
+            <div ref={panduanRef} className="pt-20 bg-white">
+                <h2 className="text-4xl font-bold text-gray-800 text-center mb-8">
+                    Panduan Penggunaan
+                </h2>
+                <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                    <div className="max-w-7xl mx-auto px-6 py-4 bg-red-700 text-white rounded-lg shadow-lg">
+                        <p className="mb-4 text-lg">
+                            Selamat datang di aplikasi kami! Berikut adalah
+                            panduan singkat untuk membantu Anda memulai:
+                        </p>
+                        <ol className="list-decimal list-inside mb-4">
+                            {steps.map((step, index) => (
+                                <div key={index} className="mb-2 text-lg">
+                                    <button
+                                        onClick={() => toggleStep(index)}
+                                        className="w-full text-left font-bold"
+                                    >
+                                        {step.title}
+                                    </button>
+                                    {step.image && openStep === index && (
+                                        <div className="mt-2">
+                                            <img
+                                                src={step.image}
+                                                alt={step.title}
+                                                className="mb-2"
+                                            />
+                                            <p>{step.description}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </ol>
+                    </div>
+                </div>
+            </div>
             {/* Footer */}
             <footer className="p-4 mt-10 bg-gray-100">
                 <div className="text-center text-lg text-gray-700 p-6">

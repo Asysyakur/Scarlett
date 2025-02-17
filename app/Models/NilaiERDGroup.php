@@ -12,7 +12,7 @@ class NilaiERDGroup extends Model
     protected $table = 'nilai_erd_group'; // Nama tabel yang digunakan
 
     // Kolom yang dapat diisi
-    protected $fillable = ['group_id', 'catatan', 'nilai'];
+    protected $fillable = ['group_id', 'catatan', 'nilai', 'task'];
 
     // Relasi dengan model 'Group'
     public function groups()

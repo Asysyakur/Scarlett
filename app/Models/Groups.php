@@ -20,4 +20,9 @@ class Groups extends Model
     {
         return $this->hasMany(NilaiERDGroup::class);
     }
+
+    public function groupUser()
+    {
+        return $this->hasMany(GroupUser::class);
+    }
 }

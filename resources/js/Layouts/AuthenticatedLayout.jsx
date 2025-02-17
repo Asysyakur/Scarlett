@@ -15,10 +15,10 @@ const baseNavigation = [
 ];
 
 export default function AuthenticatedLayout({ header, children }) {
-    const user = usePage().props.auth.user;
+    const { auth } = usePage().props;
+    const user = auth.user;
     const isAdmin = user.role_id === 1; // Adjust based on your role structure
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
 
     return (
         <div className="min-h-screen bg-white">
@@ -35,28 +35,30 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:flex">
-                                {baseNavigation.map((item, index) => (
-                                    <NavLink
-                                        key={index}
-                                        href={item.href}
-                                        active={
-                                            window.location.pathname ===
-                                            item.href
-                                        }
-                                        className="text-white hover:text-yellow-500"
-                                    >
-                                        {item.name}
-                                    </NavLink>
-                                ))}
+                                {baseNavigation.map((item, index) => {
+                                    const isDisabled = !isAdmin && (
+                                        (item.name === "Test" && (!user?.progress_user || user.progress_user.progress < 1)) ||
+                                        (item.name === "Materi" && (!user?.progress_user || user.progress_user.progress < 2)) ||
+                                        (item.name === "Kelompok" && (!user?.progress_user || user.progress_user.progress < 2)) ||
+                                        (item.name === "Diagram" && (!user?.progress_user || user.progress_user.progress < 2))
+                                    );
+                                    return (
+                                        <NavLink
+                                            key={index}
+                                            href={item.href}
+                                            active={window.location.pathname === item.href}
+                                            className={`text-white hover:text-yellow-500 ${isDisabled ? "pointer-events-none opacity-50" : ""}`}
+                                        >
+                                            {item.name}
+                                        </NavLink>
+                                    );
+                                })}
 
                                 {/* Render "Monitoring" link if user is admin */}
                                 {isAdmin && (
                                     <NavLink
                                         href="/monitoring"
-                                        active={
-                                            window.location.pathname ===
-                                            "/monitoring"
-                                        }
+                                        active={window.location.pathname === "/monitoring"}
                                         className="text-white hover:text-yellow-500"
                                     >
                                         Monitoring
@@ -164,18 +166,26 @@ export default function AuthenticatedLayout({ header, children }) {
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
-                        {baseNavigation.map((item, index) => (
-                            <ResponsiveNavLink
-                                key={index}
-                                href={item.href}
-                                active={route().current(item.href)}
-                                className="text-amber-200 hover:text-yellow-500"
-                            >
-                                {item.name}
-                            </ResponsiveNavLink>
-                        ))}
+                        {baseNavigation.map((item, index) => {
+                            const isDisabled = !isAdmin && (
+                                (item.name === "Test" && (!user?.progress_user || user.progress_user.progress < 1)) ||
+                                (item.name === "Materi" && (!user?.progress_user || user.progress_user.progress < 2)) ||
+                                (item.name === "Kelompok" && (!user?.progress_user || user.progress_user.progress < 2)) ||
+                                (item.name === "Diagram" && (!user?.progress_user || user.progress_user.progress < 2))
+                            );
+                            return (
+                                <ResponsiveNavLink
+                                    key={index}
+                                    href={item.href}
+                                    active={route().current(item.href)}
+                                    className={`text-amber-200 hover:text-yellow-500 ${isDisabled ? "pointer-events-none opacity-50" : ""}`}
+                                >
+                                    {item.name}
+                                </ResponsiveNavLink>
+                            );
+                        })}
 
-                        {/* Render "Mentoring" link for admin in mobile nav */}
+                        {/* Render "Monitoring" link for admin in mobile nav */}
                         {isAdmin && (
                             <ResponsiveNavLink
                                 href="/monitoring"

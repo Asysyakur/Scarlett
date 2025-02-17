@@ -18,6 +18,7 @@ class ERDUsers extends Model
         'table_id',
         'user_id',
         'attributes',
+        'screenshoot',
     ];
 
     // The attributes that should be cast to native types.
@@ -47,5 +48,13 @@ class ERDUsers extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the comments for the ERDUser.
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 }

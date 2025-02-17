@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('nilai_erd_group', function (Blueprint $table) {
+        Schema::create('comment', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('group_id')->constrained('groups')->onDelete('cascade');
-            $table->text('catatan')->nullable();
-            $table->enum('nilai', ['Benar', 'Benar Setelah Diperbaiki', 'Belum Benar'])->default('Belum Benar');
-            $table->text('task')->nullable();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('erd_user_id')->constrained('erd_users')->onDelete('cascade');
+            $table->text('comment');
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('nilai_erd_group');
+        Schema::dropIfExists('comment');
     }
 };

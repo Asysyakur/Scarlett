@@ -38,6 +38,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/monitoring/erd/{id}', [ActivityController::class, 'erdShow'])->name('monitoring.erd.show');
     Route::post('/monitoring/erd/{id}', [NilaiController::class, 'storeNilaiERD'])->name('monitoring.erd.storeNilaiERD');
     Route::post('/monitoring/erd/{id}/edit', [NilaiController::class, 'editNilaiERD'])->name('monitoring.erd.editNilaiERD');
+    Route::delete('/monitoring/erd/comment/{commentId}', [ActivityController::class, 'deleteComment'])->name('monitoring.erd.deleteComment');
 
     Route::post('/diagram/{id}', [NilaiController::class, 'storeERDGroup'])->name('diagram.storeERDGroup');
     Route::post('/diagram/{id}/edit', [NilaiController::class, 'editERDGroup'])->name('diagram.editERDGroup');
@@ -66,6 +67,8 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
 
     Route::post('/groups/{group}/add-student', [GroupsController::class, 'addStudent'])->name('group.addStudent');
     Route::delete('/groups/{group}/remove-student/{id}', [GroupsController::class, 'removeStudent'])->name('group.removeStudent');
+    Route::post('/groups/{group}/set-leader/{id}', [GroupsController::class, 'setLeader'])->name('group.setLeader');
+    Route::post('/groups/{group}/unset-leader/{id}', [GroupsController::class, 'removeLeader'])->name('group.removeLeader');
 });
 
 Route::middleware('auth')->group(function () {
@@ -84,6 +87,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/materi/{materi}/drag-and-drop', [MateriController::class, 'dragAndDrop'])->name('materi.dragAndDrop');
     Route::get('/materi/{materi}/studi-kasus', [MateriController::class, 'studiKasus'])->name('materi.studiKasus');
     Route::post('/materi/drag-and-drop/save', [MateriController::class, 'dndSave'])->name('materi.dragAndDrop.save');
+    Route::post('/upload-screenshot', [ActivityController::class, 'uploadScreenshot'])->name('activity.uploadScreenshot');
+    Route::post('/diagram/{id}/task', [GroupsController::class, 'storeTask'])->name('diagram.storeTask');
 
     Route::get('/test', [TestController::class, 'index'])->name('test.index');
     Route::get('/test/{test}', [TestController::class, 'show'])->name('test.show');
@@ -95,6 +100,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::post('/update-progress', [ProgressController::class, 'updateProgress'])->name('progress.update.progress');
+    Route::post('/comment', [ActivityController::class, 'comment'])->name('comment');
 });
 
 require __DIR__ . '/auth.php';

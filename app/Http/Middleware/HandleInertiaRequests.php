@@ -33,6 +33,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'progressUser' => $request->user() ? $request->user()->progressUser : null,
             ],
         ];
     }
