@@ -829,13 +829,6 @@ const GameBoard = ({
                     }
                 }, "image/png");
             }
-            try {
-                await axios.post(`/update-progress`, {
-                    progress: 3,
-                });
-            } catch (error) {
-                console.error("Error updating progress:", error);
-            }
         } catch (error) {
             // Handle errors
             console.error("Error saving data:", error);
