@@ -46,10 +46,6 @@ const Show = ({ erdUser, erdRelation, erdNilai, commentUser }) => {
                 );
             }
 
-            await axios.post(`/update-progress/${erdUser[0].user_id}`, {
-                progress: 3,
-            });
-
             Swal.fire(
                 "Berhasil!",
                 "Data berhasil disimpan dan progress diperbarui",

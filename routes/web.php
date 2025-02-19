@@ -69,7 +69,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::delete('/groups/{group}/remove-student/{id}', [GroupsController::class, 'removeStudent'])->name('group.removeStudent');
     Route::post('/groups/{group}/set-leader/{id}', [GroupsController::class, 'setLeader'])->name('group.setLeader');
     Route::post('/groups/{group}/unset-leader/{id}', [GroupsController::class, 'removeLeader'])->name('group.removeLeader');
-    Route::post('/update-progress/{id}', [ProgressController::class, 'updateProgressId'])->name('progress.update.id');
+    Route::post('/update-progress/{groupId}', [ProgressController::class, 'updateProgressId'])->name('progress.update.id');
 });
 
 Route::middleware('auth')->group(function () {

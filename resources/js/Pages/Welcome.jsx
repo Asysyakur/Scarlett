@@ -285,19 +285,34 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                         </p>
                         <ol className="list-decimal list-inside mb-4">
                             {steps.map((step, index) => (
-                                <div key={index} className="mb-2 text-lg">
+                                <div key={index} className="mb-2 text-lg ">
                                     <button
                                         onClick={() => toggleStep(index)}
-                                        className="w-full text-left font-bold"
+                                        className={`w-full text-left text-black font-bold flex items-center justify-between p-4 rounded-lg transition-all duration-300 ${
+                                            step.image
+                                                ? "cursor-pointer bg-white hover:bg-gray-200"
+                                                : "bg-white"
+                                        }`}
                                     >
                                         {step.title}
+                                        {step.image && (
+                                            <span
+                                                className={`transform transition-transform ${
+                                                    openStep === index
+                                                        ? "rotate-180"
+                                                        : "rotate-0"
+                                                }`}
+                                            >
+                                                ▼
+                                            </span>
+                                        )}
                                     </button>
                                     {step.image && openStep === index && (
-                                        <div className="mt-2">
+                                        <div className="mt-2 p-4 bg-white text-black rounded-lg shadow-md">
                                             <img
                                                 src={step.image}
                                                 alt={step.title}
-                                                className="mb-2"
+                                                className="mb-2 rounded-lg"
                                             />
                                             <p>{step.description}</p>
                                         </div>
@@ -354,7 +369,10 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                             Special Thanks to:
                         </div>
                         <ul className="flex flex-wrap justify-center space-x-4 text-lg">
-                            <li>Image and Animation Resource: storyset on Freepik</li>
+                            <li>
+                                Image and Animation Resource: storyset on
+                                Freepik
+                            </li>
                             <li>Workspace: DrawIO</li>
                             <li>
                                 Video Material: Decomplexify, Ilkom UNU Blitar
