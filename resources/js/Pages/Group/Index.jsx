@@ -208,7 +208,7 @@ export default function Group({ auth, users, groups, usersGroups }) {
                                         className="transform transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl"
                                     >
                                         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                                            Grup {index + 1} : {group.name} (
+                                            {group.name} (
                                             {group.users.length} Siswa)
                                         </h2>
                                         <ul>
@@ -313,7 +313,7 @@ export default function Group({ auth, users, groups, usersGroups }) {
                                 ))
                             ) : (
                                 <p className="col-span-full text-center text-gray-500">
-                                    Tidak ada grup yang tersedia saat ini.
+                                    Tidak ada kelompok yang tersedia saat ini.
                                 </p>
                             )}
                         </div>
@@ -323,12 +323,12 @@ export default function Group({ auth, users, groups, usersGroups }) {
                         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
                             <div className="bg-white p-6 rounded-lg shadow-lg max-w-4xl w-full">
                                 <h3 className="text-xl font-semibold text-gray-700 mb-4">
-                                    Tambah Anggota ke Grup
+                                    Tambah Anggota ke Kelompok
                                 </h3>
                                 <div className="flex flex-col md:flex-row gap-4">
                                     <div className="w-full">
                                         <h4 className="text-lg font-semibold text-gray-600 mb-2">
-                                            Anggota di Grup
+                                            Anggota di Kelompok
                                         </h4>
                                         <ul className="border border-gray-300 rounded-lg p-2 overflow-auto h-64">
                                             {selectedGroup?.users.map(
@@ -393,7 +393,7 @@ export default function Group({ auth, users, groups, usersGroups }) {
                                     </div>
                                     <div className="w-full">
                                         <h4 className="text-lg font-semibold text-gray-600 mb-2">
-                                            Anggota yang Belum di Grup
+                                            Anggota yang Belum di Kelompok
                                         </h4>
                                         <select
                                             multiple
@@ -495,7 +495,7 @@ export default function Group({ auth, users, groups, usersGroups }) {
                                         className="transform transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl mb-6"
                                     >
                                         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                                            Grup {index + 1} : {group.name} (
+                                            {group.name} (
                                             {group.users.length} Siswa)
                                         </h2>
                                         <ul className="space-y-2">

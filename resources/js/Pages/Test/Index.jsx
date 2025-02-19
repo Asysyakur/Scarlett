@@ -277,7 +277,7 @@ export default function Index({ tests: initialTests, auth }) {
                                 key={test.id}
                                 href={
                                     auth.user.role_id === 1 ||
-                                    auth.progressUser.progress >= 3 ||
+                                    auth.progressUser.progress >= 4 ||
                                     (auth.progressUser.progress >= 1 &&
                                         index === 0)
                                         ? `/test/${test.id}`
@@ -285,7 +285,7 @@ export default function Index({ tests: initialTests, auth }) {
                                 }
                                 className={`transform flex flex-col md:mx-24 mx-6 transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl ${
                                     auth.user.role_id === 1 ||
-                                    auth.progressUser.progress >= 3 ||
+                                    auth.progressUser.progress >= 4 ||
                                     (auth.progressUser.progress >= 1 &&
                                         index === 0)
                                         ? ""

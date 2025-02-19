@@ -42,12 +42,6 @@ export default function StudiKasus({ materi }) {
                     >
                         Kembali ke Materi
                     </Link>
-                    <Link
-                        href={`/materi/${materi.id}/drag-and-drop`} // Adjust this route as needed
-                        className="text-white hover:bg-amber-700 bg-amber-500 transition-all ease-in-out duration-200 font-semibold px-4 py-2 rounded"
-                    >
-                        Diagram Erd
-                    </Link>
                 </div>
                 <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
                     Studi Kasus: {materi.title}
@@ -60,6 +54,14 @@ export default function StudiKasus({ materi }) {
                     >
                         Your browser does not support PDFs.
                     </iframe>
+                </div>
+                <div className="flex justify-center">
+                    <Link
+                        href={`/materi/${materi.id}/drag-and-drop`} // Adjust this route as needed
+                        className="text-white hover:bg-amber-700 bg-amber-500 transition-all ease-in-out duration-200 font-semibold px-4 py-2 rounded"
+                    >
+                        Diagram Erd
+                    </Link>
                 </div>
             </div>
         </AuthenticatedLayout>

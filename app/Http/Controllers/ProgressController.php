@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\GroupUser;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -28,7 +29,7 @@ class ProgressController extends Controller
         ]);
 
         $user = $request->user();
-        if(!$user->progressUser) {
+        if (!$user->progressUser) {
             $user->progressUser()->create([
                 'progress' => $request->progress,
             ]);
@@ -46,29 +47,34 @@ class ProgressController extends Controller
         }
     }
 
-    public function updateProgressId(Request $request, $id)
+    public function updateProgressId(Request $request, $groupId)
     {
         $request->validate([
             'progress' => 'required|integer|min:0',
         ]);
 
-        $user = User::find($id);
-        if(!$user->progressUser) {
-            $user->progressUser()->create([
-                'progress' => $request->progress,
-            ]);
-            return;
-        }
-        $currentProgress = $user->progressUser->progress;
+        $users = GroupUser::where('group_id', $groupId)->get();
 
-        // Check if the requested progress is less than the current progress
-        if ($request->progress > $currentProgress) {
-            // Update the progress for the authenticated user
-            $user->progressUser()->updateOrCreate(
-                ['user_id' => $user->id],
-                ['progress' => $request->progress]
-            );
+        foreach ($users as $user) {
+            $user = User::find($user->user_id);
+            if (!$user->progressUser) {
+                $user->progressUser()->create([
+                    'progress' => $request->progress,
+                ]);
+            } else {
+                $currentProgress = $user->progressUser->progress;
+
+                // Check if the requested progress is greater than the current progress
+                if ($request->progress > $currentProgress) {
+                    // Update the progress for the user
+                    $user->progressUser()->updateOrCreate(
+                        ['user_id' => $user->id],
+                        ['progress' => $request->progress]
+                    );
+                }
+            }
         }
+
+        return response()->json(['message' => 'Progress updated successfully for all users in the group.']);
     }
-
 }

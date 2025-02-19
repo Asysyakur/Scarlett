@@ -818,6 +818,7 @@ const GameBoard = ({
                         // Check if the response is successful
                         if (response.status === 200) {
                             // Show success alert
+                            await axios.post("/update-progress", { progress: 3 });
                             await Swal.fire({
                                 icon: "success",
                                 title: "Berhasil!",

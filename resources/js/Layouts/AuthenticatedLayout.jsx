@@ -54,7 +54,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             (item.name === "Diagram" &&
                                                 (!user?.progress_user ||
                                                     user.progress_user
-                                                        .progress < 2)));
+                                                        .progress < 3)));
                                     return (
                                         <NavLink
                                             key={index}
@@ -203,7 +203,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             user.progress_user.progress < 2)) ||
                                     (item.name === "Diagram" &&
                                         (!user?.progress_user ||
-                                            user.progress_user.progress < 2)));
+                                            user.progress_user.progress < 3)));
                             return (
                                 <ResponsiveNavLink
                                     key={index}

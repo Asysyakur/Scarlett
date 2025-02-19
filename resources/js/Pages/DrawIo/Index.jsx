@@ -71,7 +71,7 @@ function DrawioEmbed({
         setEvaluations({ ...evaluations, [groupId]: e.target.value });
     };
 
-    const handleSubmit = (e, id) => {
+    const handleSubmit = async(e, id) => {
         e.preventDefault();
         // Kirim data ke backend
         if (nilaiERDGroups.some((group) => group.group_id === id)) {
@@ -119,6 +119,7 @@ function DrawioEmbed({
                     console.error(error);
                 });
         }
+        await axios.post(`/update-progress/${id}`, { progress: 4 });
     };
 
     const openModal = (image, userId, erdUserId) => {
