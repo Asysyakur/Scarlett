@@ -105,6 +105,46 @@ class ActivityController extends Controller
     }
 
 
+    public function userIndex()
+    {
+        // Retrieve all users
+        $users = User::where('role_id', '!=', 1)->get(); // Exclude admin users
+
+        return Inertia::render('Monitoring/UserList/Index', [
+            'users' => $users,
+        ]);
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        // Validate the request data
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        // Find the user and update their details
+        $user = User::findOrFail($id);
+        $user->update($request->only('name', 'email', 'password'));
+
+        return response()->json(['message' => 'User updated successfully']);
+    }
+
+    public function deleteUser($id)
+    {
+        // Find the user
+        $user = User::findOrFail($id);
+
+        // Delete related activities manually
+        Activity::where('user_id', $id)->delete();
+
+        // Delete the user
+        $user->delete();
+
+        return response()->json(['message' => 'User and related activities deleted successfully']);
+    }
+
     public function show($userId)
     {
         // Find the user and their activities
