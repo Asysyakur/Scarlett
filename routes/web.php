@@ -39,6 +39,9 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::post('/monitoring/erd/{id}', [NilaiController::class, 'storeNilaiERD'])->name('monitoring.erd.storeNilaiERD');
     Route::post('/monitoring/erd/{id}/edit', [NilaiController::class, 'editNilaiERD'])->name('monitoring.erd.editNilaiERD');
     Route::delete('/monitoring/erd/comment/{commentId}', [ActivityController::class, 'deleteComment'])->name('monitoring.erd.deleteComment');
+    Route::get('/monitoring/users', [ActivityController::class, 'userIndex'])->name('monitoring.user');
+    Route::put('/monitoring/users/{id}', [ActivityController::class, 'updateUser'])->name('monitoring.user.update');
+    Route::delete('/monitoring/users/{id}', [ActivityController::class, 'deleteUser'])->name('monitoring.user.delete');
 
     Route::post('/diagram/{id}', [NilaiController::class, 'storeERDGroup'])->name('diagram.storeERDGroup');
     Route::post('/diagram/{id}/edit', [NilaiController::class, 'editERDGroup'])->name('diagram.editERDGroup');
