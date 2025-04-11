@@ -68,6 +68,17 @@ const UserList = ({ users }) => {
     const handleEditSubmit = async (e) => {
         e.preventDefault();
 
+        // Validate name and email
+        if (!formData.name.trim()) {
+            Swal.fire("Gagal!", "Nama tidak boleh kosong.", "error");
+            return;
+        }
+
+        if (!formData.email.trim()) {
+            Swal.fire("Gagal!", "Email tidak boleh kosong.", "error");
+            return;
+        }
+
         // Validate password length
         if (formData.password && formData.password.length < 8) {
             Swal.fire(
@@ -281,6 +292,7 @@ const UserList = ({ users }) => {
                                     value={formData.name}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-amber-500"
+                                    required // HTML validation to ensure the field is not empty
                                 />
                             </div>
                             <div className="mb-4">
@@ -297,6 +309,7 @@ const UserList = ({ users }) => {
                                     value={formData.email}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-amber-500"
+                                    required // HTML validation to ensure the field is not empty
                                 />
                             </div>
                             <div className="mb-4">
@@ -314,7 +327,6 @@ const UserList = ({ users }) => {
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-amber-500"
                                     minLength={8} // HTML validation for minimum 8 characters
-                                    required // Ensure the field is required
                                 />
                             </div>
                             <div className="flex justify-end space-x-4">

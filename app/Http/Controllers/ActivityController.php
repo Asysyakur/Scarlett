@@ -126,7 +126,11 @@ class ActivityController extends Controller
 
         // Find the user and update their details
         $user = User::findOrFail($id);
-        $user->update($request->only('name', 'email', 'password'));
+        if($request->filled('password')) {
+            $user->update($request->only('name', 'email', 'password'));
+        }else{
+            $user->update($request->only('name', 'email'));
+        }
 
         return response()->json(['message' => 'User updated successfully']);
     }
