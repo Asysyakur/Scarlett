@@ -105,6 +105,7 @@ class GroupsController extends Controller
 
         // Find the group that includes the logged-in user
         $userGroup = GroupUser::where('user_id', $user->id)->first();
+        $erdUserAll = ERDUsers::all();
 
         if ($userGroup) {
             // Get all user IDs in the same group
@@ -122,6 +123,7 @@ class GroupsController extends Controller
             'erdUser' => $erdUser,
             'commentUser' => $commentUser,
             'usersGroups' => $usersGroups,
+            'erdUserAll' => $erdUserAll,
         ]);
     }
 

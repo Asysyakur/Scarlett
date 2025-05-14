@@ -1,7 +1,7 @@
 import { useActivity } from "@/Contexts/ActivityContext";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 
@@ -12,20 +12,29 @@ function DrawioEmbed({
     erdUser,
     commentUser,
     usersGroups,
+    erdUserAll,
 }) {
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
     const uniqueErdUser = Array.from(
         new Map(erdUser.map((item) => [item.user_id, item])).values()
     );
+    const uniqueErdUserAll = Array.from(
+        new Map(erdUserAll.map((item) => [item.user_id, item])).values()
+    );
+    const isAdmin = auth.user.role_id === 1;
+    console.log(uniqueErdUserAll);
     const [comments, setComments] = useState({});
     const [evaluations, setEvaluations] = useState({});
-    const [activeTab, setActiveTab] = useState("diagramAnggota");
+    const [activeTab, setActiveTab] = useState(
+        isAdmin ? "diagramAdmin" : "diagramAnggota"
+    );
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [selectedErdUser, setSelectedErdUser] = useState(null);
     const [pembagianTugas, setPembagianTugas] = useState(null);
+    const [selectedGroup, setSelectedGroup] = useState(null);
 
     useEffect(() => {
         const handleVisibilityChange = async () => {
@@ -71,7 +80,7 @@ function DrawioEmbed({
         setEvaluations({ ...evaluations, [groupId]: e.target.value });
     };
 
-    const handleSubmit = async(e, id) => {
+    const handleSubmit = async (e, id) => {
         e.preventDefault();
         // Kirim data ke backend
         if (nilaiERDGroups.some((group) => group.group_id === id)) {
@@ -160,8 +169,6 @@ function DrawioEmbed({
             });
     };
 
-    const isAdmin = auth.user.role_id === 1;
-
     // Find the group that the authenticated user belongs to
     const group = groups.find((group) =>
         group.users.find((user) => user.id === auth.user.id)
@@ -174,6 +181,11 @@ function DrawioEmbed({
     useEffect(() => {
         setPembagianTugas(nilaiGroup?.task);
     }, [nilaiGroup]);
+
+    const handleGroupClick = (groupId) => {
+        const selectedGroups = groups.find((group) => group.id === groupId);
+        setSelectedGroup(selectedGroups); // Simpan ID grup yang dipilih
+    };
 
     const handleTask = async (e, id) => {
         e.preventDefault();
@@ -204,91 +216,21 @@ function DrawioEmbed({
                     <div className="text-center text-xl text-red-500">
                         Tidak ada Kelompok yang tersedia.
                     </div>
-                ) : isAdmin ? (
-                    // Admin view: Display all groups in a 3-column grid
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 text-center">
-                        {groups.map((group) => (
-                            <div
-                                key={group.id}
-                                className="transform transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-50 hover:shadow-xl"
-                            >
-                                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                                    {group.name}
-                                </h2>
-                                <iframe
-                                    src={`${group.drawio_link}`}
-                                    title={`Draw.io Diagram for ${group.name}`}
-                                    className="w-full h-64"
-                                    style={{ border: "none" }}
-                                />
-                                <form
-                                    onSubmit={(e) => handleSubmit(e, group.id)}
-                                    className="mt-6"
-                                >
-                                    <div className="mt-6">
-                                        <label
-                                            className="block text-gray-700 text-sm font-bold mb-2"
-                                            htmlFor={`comment-${group.id}`}
-                                        >
-                                            Catatan:
-                                        </label>
-                                        <textarea
-                                            id={`comment-${group.id}`}
-                                            value={comments[group.id] || ""}
-                                            onChange={(e) =>
-                                                handleCommentChange(e, group.id)
-                                            }
-                                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                            rows="4"
-                                        ></textarea>
-                                    </div>
-
-                                    <div className="mt-4">
-                                        <label
-                                            className="block text-gray-700 text-sm font-bold mb-2"
-                                            htmlFor={`evaluation-${group.id}`}
-                                        >
-                                            Nilai ERD:
-                                        </label>
-                                        <select
-                                            id={`evaluation-${group.id}`}
-                                            value={
-                                                evaluations[group.id] ||
-                                                "Belum Benar"
-                                            }
-                                            onChange={(e) =>
-                                                handleEvaluationChange(
-                                                    e,
-                                                    group.id
-                                                )
-                                            }
-                                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                        >
-                                            <option value="Belum Benar">
-                                                Belum Benar
-                                            </option>
-                                            <option value="Benar Setelah Diperbaiki">
-                                                Benar Setelah Diperbaiki
-                                            </option>
-                                            <option value="Benar">Benar</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="mt-6">
-                                        <button
-                                            type="submit"
-                                            className="bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                                        >
-                                            Submit
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        ))}
-                    </div>
                 ) : (
                     <div className="max-w-7xl mx-auto p-6">
                         <div className="flex justify-center gap-6 mb-4">
+                            {isAdmin && (
+                                <button
+                                    onClick={() => setActiveTab("diagramAdmin")}
+                                    className={`px-4 py-2 rounded-t-lg ${
+                                        activeTab === "diagramAdmin"
+                                            ? "bg-amber-500 text-white"
+                                            : "bg-gray-200 text-gray-700"
+                                    }`}
+                                >
+                                    Diagram Admin
+                                </button>
+                            )}
                             <button
                                 onClick={() => setActiveTab("diagramAnggota")}
                                 className={`px-4 py-2 rounded-t-lg ${
@@ -297,7 +239,10 @@ function DrawioEmbed({
                                         : "bg-gray-200 text-gray-700"
                                 }`}
                             >
-                                Diagram Anggota
+                                Diagram Anggota{" "}
+                                <span className="font-bold">
+                                    {selectedGroup?.name}
+                                </span>
                             </button>
                             <button
                                 onClick={() => setActiveTab("diagramKelompok")}
@@ -307,12 +252,147 @@ function DrawioEmbed({
                                         : "bg-gray-200 text-gray-700"
                                 }`}
                             >
-                                Diagram Kelompok
+                                Diagram Kelompok{" "}
+                                <span className="font-bold">
+                                    {selectedGroup?.name}
+                                </span>
                             </button>
                         </div>
 
+                        {activeTab === "diagramAdmin" && isAdmin && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 text-center">
+                                {groups.map((group) => (
+                                    <div
+                                        key={group.id}
+                                        onClick={() =>
+                                            handleGroupClick(group.id)
+                                        }
+                                        className="transform transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-50 hover:shadow-xl"
+                                    >
+                                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                                            {group.name}
+                                        </h2>
+                                        <iframe
+                                            src={`${group.drawio_link}`}
+                                            title={`Draw.io Diagram for ${group.name}`}
+                                            className="w-full h-64"
+                                            style={{ border: "none" }}
+                                        />
+                                        <form
+                                            onSubmit={(e) =>
+                                                handleSubmit(e, group.id)
+                                            }
+                                            className="mt-6"
+                                        >
+                                            <div className="mt-6">
+                                                <label
+                                                    className="block text-gray-700 text-sm font-bold mb-2"
+                                                    htmlFor={`comment-${group.id}`}
+                                                >
+                                                    Catatan:
+                                                </label>
+                                                <textarea
+                                                    id={`comment-${group.id}`}
+                                                    value={
+                                                        comments[group.id] || ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        handleCommentChange(
+                                                            e,
+                                                            group.id
+                                                        )
+                                                    }
+                                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                                    rows="4"
+                                                ></textarea>
+                                            </div>
+
+                                            <div className="mt-4">
+                                                <label
+                                                    className="block text-gray-700 text-sm font-bold mb-2"
+                                                    htmlFor={`evaluation-${group.id}`}
+                                                >
+                                                    Nilai ERD:
+                                                </label>
+                                                <select
+                                                    id={`evaluation-${group.id}`}
+                                                    value={
+                                                        evaluations[group.id] ||
+                                                        "Belum Benar"
+                                                    }
+                                                    onChange={(e) =>
+                                                        handleEvaluationChange(
+                                                            e,
+                                                            group.id
+                                                        )
+                                                    }
+                                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                                >
+                                                    <option value="Belum Benar">
+                                                        Belum Benar
+                                                    </option>
+                                                    <option value="Benar Setelah Diperbaiki">
+                                                        Benar Setelah Diperbaiki
+                                                    </option>
+                                                    <option value="Benar">
+                                                        Benar
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <div className="mt-6">
+                                                <button
+                                                    type="submit"
+                                                    className="bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                                                >
+                                                    Submit
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
                         {activeTab === "diagramAnggota" && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {selectedGroup &&
+                                    uniqueErdUserAll
+                                        .filter((erdUser) =>
+                                            selectedGroup.users.some(
+                                                (user) =>
+                                                    user.id === erdUser.user_id
+                                            )
+                                        )
+                                        .map((erdUser) => (
+                                            <div
+                                                key={erdUser.user_id}
+                                                className="bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-50 hover:shadow-xl cursor-pointer"
+                                                onClick={() =>
+                                                    openModal(
+                                                        `storage/${erdUser.screenshoot}`,
+                                                        erdUser.user_id,
+                                                        erdUser.id
+                                                    )
+                                                }
+                                            >
+                                                <div className="text-lg font-semibold text-gray-800 mb-4">
+                                                    {selectedGroup.users.find(
+                                                        (user) =>
+                                                            user.id ===
+                                                            erdUser.user_id
+                                                    )?.name ||
+                                                        "Nama tidak ditemukan"}
+                                                </div>
+                                                <div className="flex justify-center items-center w-full h-[30vh] bg-gray-100">
+                                                    <img
+                                                        src={`storage/${erdUser.screenshoot}`}
+                                                        alt={`Screenshot of ${erdUser.id}`}
+                                                        className="w-full object-contain"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
                                 {uniqueErdUser.map((erdUser) => (
                                     <div
                                         key={erdUser.user_id}
@@ -348,12 +428,17 @@ function DrawioEmbed({
 
                         {activeTab === "diagramKelompok" && (
                             <div>
-                                {group ? (
+                                {group || selectedGroup ? (
                                     <>
                                         {/* Tampilan Diagram */}
                                         <div className="flex justify-center items-center w-full h-[70vh] bg-gray-100">
                                             <iframe
-                                                src={`${group.drawio_link}`}
+                                                src={
+                                                    selectedGroup
+                                                        ? selectedGroup.drawio_link // Jika ada grup yang dipilih, gunakan link dari selectedGroup
+                                                        : group?.drawio_link ||
+                                                          "" // Jika tidak, gunakan link dari group (jika tersedia)
+                                                }
                                                 title="User's Draw.io Diagram"
                                                 className="w-full h-full"
                                                 style={{ border: "none" }}
@@ -363,8 +448,10 @@ function DrawioEmbed({
                                         {/* Pembagian Tugas */}
                                         {usersGroups.find(
                                             (userGroup) =>
-                                                userGroup.group_id ===
-                                                    group.id &&
+                                                (userGroup.group_id ===
+                                                    group?.id ||
+                                                    userGroup.group_id ===
+                                                        selectedGroup?.id) &&
                                                 userGroup.user_id ===
                                                     auth.user.id
                                         )?.is_leader ? (
