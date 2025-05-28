@@ -72,6 +72,9 @@ export default function Show({ materi }) {
                         Kembali ke Materi
                     </Link>
                 </div>
+                <h2 className="text-2xl font-semibold text-center text-red-700 mb-4">
+                    Step Open Inquiry : Formulating Hypotheses
+                </h2>
                 <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
                     {materi.title}
                 </h1>
@@ -178,9 +181,9 @@ export default function Show({ materi }) {
                 <div className="mt-6 flex justify-center relative">
                     {isButtonDisabled ? (
                         <button
-                        className={`bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
-                            isButtonDisabled ? "opacity-50" : ""
-                        }`}
+                            className={`bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                                isButtonDisabled ? "opacity-50" : ""
+                            }`}
                             onMouseEnter={() => setShowTooltip(true)}
                             onMouseLeave={() => setShowTooltip(false)}
                         >

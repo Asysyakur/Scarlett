@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
+import * as XLSX from "xlsx"; // Import pustaka xlsx
 
 const MonitoringDetailPage = ({ user, activities }) => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -53,6 +54,28 @@ const MonitoringDetailPage = ({ user, activities }) => {
         }
     };
 
+    const handleDownloadExcel = () => {
+        // Format data untuk Excel
+        const dataForExcel = activityArray.map((activity, index) => ({
+            "No": index + 1,
+            Halaman: activity.path,
+            Durasi:
+                activity.duration < 60
+                    ? `${activity.duration} detik`
+                    : activity.duration < 3600
+                    ? `${(activity.duration / 60).toFixed(2)} menit`
+                    : `${(activity.duration / 3600).toFixed(2)} jam`,
+        }));
+
+        // Buat worksheet dan workbook
+        const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Detail Aktivitas");
+
+        // Unduh file Excel
+        XLSX.writeFile(workbook, `Aktivitas_${user.name}.xlsx`);
+    };
+
     return (
         <AuthenticatedLayout header={<h2>Detail Aktivitas</h2>}>
             <Head title={`Detail Aktivitas`} />
@@ -67,6 +90,12 @@ const MonitoringDetailPage = ({ user, activities }) => {
                     <h2 className="text-xl font-semibold">
                         Aktivitas Siswa: {user.name}
                     </h2>
+                    <button
+                        onClick={handleDownloadExcel}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600"
+                    >
+                        Unduh Excel
+                    </button>
                 </div>
                 <div className="overflow-x-auto shadow rounded-lg mt-4">
                     <table className="table-auto w-full border-collapse border border-gray-200">

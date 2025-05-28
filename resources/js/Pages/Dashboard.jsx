@@ -98,6 +98,9 @@ export default function Dashboard({ auth, data }) {
             <Head title="Dashboard" />
 
             <div className="max-w-7xl mx-auto px-6 space-y-6">
+                <h2 className="text-2xl font-semibold text-red-700 mb-4">
+                    Step Open Inquiry : Identifying Problem
+                </h2>
                 {/* Banner for Attendance Reminder */}
                 {auth?.user.id === 1 && (
                     <div className="w-full">
