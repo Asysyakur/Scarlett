@@ -48,7 +48,7 @@ function TeacherMonitoring() {
     };
 
     return (
-        <AuthenticatedLayout header={<>Monitoring Test</>}>
+        <AuthenticatedLayout header={<>Monitoring Test dan Materi</>}>
             <Head title="Teacher Monitoring" />
             <div className="max-w-7xl mx-auto p-6">
                 {streams.length === 0 ? (

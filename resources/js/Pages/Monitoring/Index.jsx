@@ -8,10 +8,10 @@ import ErdIlu from "./assets/ErdIlu.svg";
 export default function Monitoring() {
     const monitoringOptions = [
         {
-            name: "Monitoring Test",
+            name: "Monitoring",
             href: "/monitoring/monitoring-test",
             ilu: monitoringIlu,
-            descriptiom: "Monitoring siswa saat mengerjakan test",
+            descriptiom: "Monitoring siswa saat mengerjakan test dan materi",
         },
         {
             name: "Aktivitas Siswa",

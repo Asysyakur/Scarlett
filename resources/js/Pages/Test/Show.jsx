@@ -7,12 +7,12 @@ import WarnigIlu from "./assets/Warning.svg";
 import { useActivity } from "@/Contexts/ActivityContext";
 
 function StudentScreenShare({ auth, test }) {
-    const [isSharing, setIsSharing] = useState(false);
-    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-    const [remainingTime, setRemainingTime] = useState(60);
     const [showTooltip, setShowTooltip] = useState(false);
     const streamRef = useRef(null);
     const peerRef = useRef(null);
+    const [isSharing, setIsSharing] = useState(false);
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+    const [remainingTime, setRemainingTime] = useState(60);
     const { startActivity, stopActivity, currentPath, changePath } = useActivity();
 
     useEffect(() => {
