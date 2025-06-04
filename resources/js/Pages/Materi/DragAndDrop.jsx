@@ -818,7 +818,9 @@ const GameBoard = ({
                         // Check if the response is successful
                         if (response.status === 200) {
                             // Show success alert
-                            await axios.post("/update-progress", { progress: 3 });
+                            await axios.post("/update-progress", {
+                                progress: 3,
+                            });
                             await Swal.fire({
                                 icon: "success",
                                 title: "Berhasil!",
@@ -847,6 +849,9 @@ const GameBoard = ({
         <AuthenticatedLayout header={<>Drag and drop</>}>
             <Head title="Drag and Drop" />
             <div className="max-w-7xl mx-auto px-6">
+                <h2 className="text-2xl font-semibold text-red-700 mb-4">
+                    Step Open Inquiry : Designing Experiments
+                </h2>
                 <DndContext onDragEnd={handleDragEnd}>
                     {auth.user?.role_id === 1 && (
                         <div className="flex justify-between">

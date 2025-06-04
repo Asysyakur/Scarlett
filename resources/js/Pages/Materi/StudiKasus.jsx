@@ -43,6 +43,9 @@ export default function StudiKasus({ materi }) {
                         Kembali ke Materi
                     </Link>
                 </div>
+                <h2 className="text-2xl font-semibold text-center text-red-700 mb-4">
+                    Step Open Inquiry : Designing Experiments
+                </h2>
                 <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
                     Studi Kasus: {materi.title}
                 </h1>
