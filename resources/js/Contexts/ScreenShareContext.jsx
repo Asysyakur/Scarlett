@@ -57,6 +57,7 @@ export function ScreenShareProvider({ children, auth }) {
                     studentId: data.studentId,
                     peerId: data.peerId,
                     name: data.name,
+                    from: data.from,
                 });
             }
         });

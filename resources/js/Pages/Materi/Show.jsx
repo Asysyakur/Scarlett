@@ -91,6 +91,7 @@ export default function Show({ auth, materi }) {
                     studentId: auth.user.id,
                     name: auth.user.name,
                     peerId,
+                    from: "Materi",
                 });
 
                 sessionStorage.setItem("peerId", peerId);
