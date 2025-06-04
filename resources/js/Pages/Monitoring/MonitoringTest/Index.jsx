@@ -61,7 +61,8 @@ function TeacherMonitoring() {
                         {streams.map((stream, index) => (
                             <div key={index} className="bg-white shadow-lg rounded-lg p-6">
                                 <h2 className="text-base font-semibold">ID: {stream.studentId}</h2>
-                                <h2 className="text-base font-semibold">Name: {stream.name}</h2>
+                                <h2 className="text-base font-semibold">Nama: {stream.name}</h2>
+                                <h2 className="text-base font-semibold">Page: {stream.from}</h2>
                                 <video id={`video-${index}`} autoPlay controls className="w-full h-48 mb-4 rounded-lg"></video>
                                 {!activeCalls[index]?.active ? (
                                     <button

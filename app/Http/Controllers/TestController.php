@@ -77,9 +77,10 @@ class TestController extends Controller
         $studentId = $request->input('studentId');
         $peerId = $request->input('peerId'); // Use a unique identifier for the stream
         $name = $request->input('name');
+        $from = $request->input('from'); // Optional, if you want to include the source of the event
 
         // Broadcast the event to notify the teacher
-        event(new TestingEvent($studentId, $peerId, $name));
+        event(new TestingEvent($studentId, $peerId, $name, $from));
 
         return response()->json(['message' => 'Screen share started']);
     }
@@ -89,7 +90,7 @@ class TestController extends Controller
         $studentId = $request->input('studentId');
 
         // Broadcast event untuk memberitahukan guru bahwa stream dihentikan
-        event(new TestingEvent($studentId, null, null)); // Kirimkan null jika stream dihentikan
+        event(new TestingEvent($studentId, null, null, null)); // Kirimkan null jika stream dihentikan
 
         return response()->json(['message' => 'Screen share stopped']);
     }

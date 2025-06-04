@@ -72,6 +72,7 @@ function StudentScreenShare({ auth, test }) {
                     studentId: auth.user.id,
                     name: auth.user.name,
                     peerId,
+                    from: "Test",
                 });
 
                 sessionStorage.setItem("peerId", peerId);
