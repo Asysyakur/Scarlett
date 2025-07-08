@@ -16,7 +16,10 @@ export default function Group({ auth, users, groups, usersGroups }) {
     const groupMembers = groups.flatMap((group) =>
         group.users.map((user) => user.id)
     );
-    console.log(usersGroups);
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+    const [remainingTime, setRemainingTime] = useState(5);
+    const [showTooltip, setShowTooltip] = useState(false);
+    
     const usersNotInGroups = users.filter(
         (user) => !groupMembers.includes(user.id)
     );
@@ -33,6 +36,17 @@ export default function Group({ auth, users, groups, usersGroups }) {
         startActivity();
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        const timer = setInterval(() => {
+            setRemainingTime((prevTime) => {
+                if (prevTime <= 1) {
+                    clearInterval(timer);
+                    setIsButtonDisabled(false);
+                    return 0;
+                }
+                return prevTime - 1;
+            });
+        }, 1000);
 
         return () => {
             document.removeEventListener(
@@ -51,6 +65,20 @@ export default function Group({ auth, users, groups, usersGroups }) {
         event.preventDefault();
         await axios.post(route("group.storeMany"), { count: groupCount });
         router.reload();
+    };
+
+    const handleNextClick = async () => {
+        if (isButtonDisabled) {
+            return;
+        }
+        try {
+            await axios.post(`/update-progress`, {
+                progress: 3,
+            });
+            router.get(route("materi.toStudiKasus"));
+        } catch (error) {
+            console.error("Error updating progress:", error);
+        }
     };
 
     const handleRandomizeGroups = () => {
@@ -208,8 +236,8 @@ export default function Group({ auth, users, groups, usersGroups }) {
                                         className="transform transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl"
                                     >
                                         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                                            {group.name} (
-                                            {group.users.length} Siswa)
+                                            {group.name} ({group.users.length}{" "}
+                                            Siswa)
                                         </h2>
                                         <ul>
                                             {group?.users?.length > 0 ? (
@@ -490,94 +518,136 @@ export default function Group({ auth, users, groups, usersGroups }) {
                         <div className="text-center">
                             {userGroups.length > 0 ? (
                                 userGroups.map((group, index) => (
-                                    <div
-                                        key={index}
-                                        className="transform transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl mb-6"
-                                    >
-                                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                                            {group.name} (
-                                            {group.users.length} Siswa)
-                                        </h2>
-                                        <ul className="space-y-2">
-                                            {group?.users?.length > 0 ? (
-                                                group.users
-                                                    .sort((a, b) => {
-                                                        const userGroupA =
-                                                            usersGroups.find(
-                                                                (usersGroup) =>
-                                                                    usersGroup.user_id ===
-                                                                        a.id &&
-                                                                    usersGroup.group_id ===
-                                                                        group.id
-                                                            );
-                                                        const userGroupB =
-                                                            usersGroups.find(
-                                                                (usersGroup) =>
-                                                                    usersGroup.user_id ===
-                                                                        b.id &&
-                                                                    usersGroup.group_id ===
-                                                                        group.id
-                                                            );
+                                    <div>
+                                        <div
+                                            key={index}
+                                            className="transform transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl mb-6"
+                                        >
+                                            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                                                {group.name} (
+                                                {group.users.length} Siswa)
+                                            </h2>
+                                            <ul className="space-y-2">
+                                                {group?.users?.length > 0 ? (
+                                                    group.users
+                                                        .sort((a, b) => {
+                                                            const userGroupA =
+                                                                usersGroups.find(
+                                                                    (
+                                                                        usersGroup
+                                                                    ) =>
+                                                                        usersGroup.user_id ===
+                                                                            a.id &&
+                                                                        usersGroup.group_id ===
+                                                                            group.id
+                                                                );
+                                                            const userGroupB =
+                                                                usersGroups.find(
+                                                                    (
+                                                                        usersGroup
+                                                                    ) =>
+                                                                        usersGroup.user_id ===
+                                                                            b.id &&
+                                                                        usersGroup.group_id ===
+                                                                            group.id
+                                                                );
 
-                                                        const isLeaderA =
-                                                            userGroupA &&
-                                                            userGroupA.is_leader;
-                                                        const isLeaderB =
-                                                            userGroupB &&
-                                                            userGroupB.is_leader;
+                                                            const isLeaderA =
+                                                                userGroupA &&
+                                                                userGroupA.is_leader;
+                                                            const isLeaderB =
+                                                                userGroupB &&
+                                                                userGroupB.is_leader;
 
-                                                        if (
-                                                            isLeaderA &&
-                                                            !isLeaderB
-                                                        )
-                                                            return -1;
-                                                        if (
-                                                            !isLeaderA &&
-                                                            isLeaderB
-                                                        )
-                                                            return 1;
-                                                        return 0;
-                                                    })
-                                                    .map((user, userIndex) => {
-                                                        const userGroup =
-                                                            usersGroups.find(
-                                                                (usersGroup) =>
-                                                                    usersGroup.user_id ===
-                                                                        user.id &&
-                                                                    usersGroup.group_id ===
-                                                                        group.id
-                                                            );
-                                                        const isLeader =
-                                                            userGroup &&
-                                                            userGroup.is_leader;
+                                                            if (
+                                                                isLeaderA &&
+                                                                !isLeaderB
+                                                            )
+                                                                return -1;
+                                                            if (
+                                                                !isLeaderA &&
+                                                                isLeaderB
+                                                            )
+                                                                return 1;
+                                                            return 0;
+                                                        })
+                                                        .map(
+                                                            (
+                                                                user,
+                                                                userIndex
+                                                            ) => {
+                                                                const userGroup =
+                                                                    usersGroups.find(
+                                                                        (
+                                                                            usersGroup
+                                                                        ) =>
+                                                                            usersGroup.user_id ===
+                                                                                user.id &&
+                                                                            usersGroup.group_id ===
+                                                                                group.id
+                                                                    );
+                                                                const isLeader =
+                                                                    userGroup &&
+                                                                    userGroup.is_leader;
 
-                                                        return (
-                                                            <li
-                                                                key={userIndex}
-                                                                className={`flex text-lg items-center justify-between text-gray-600 bg-gray-100 p-2 rounded-lg ${
-                                                                    isLeader
-                                                                        ? "font-bold text-blue-600"
-                                                                        : ""
-                                                                }`}
-                                                            >
-                                                                <span>
-                                                                    👤{" "}
-                                                                    {user.name}{" "}
-                                                                    {isLeader ? (
+                                                                return (
+                                                                    <li
+                                                                        key={
+                                                                            userIndex
+                                                                        }
+                                                                        className={`flex text-lg items-center justify-between text-gray-600 bg-gray-100 p-2 rounded-lg ${
+                                                                            isLeader
+                                                                                ? "font-bold text-blue-600"
+                                                                                : ""
+                                                                        }`}
+                                                                    >
                                                                         <span>
-                                                                            (Ketua)
+                                                                            👤{" "}
+                                                                            {
+                                                                                user.name
+                                                                            }{" "}
+                                                                            {isLeader ? (
+                                                                                <span>
+                                                                                    (Ketua)
+                                                                                </span>
+                                                                            ) : null}
                                                                         </span>
-                                                                    ) : null}
-                                                                </span>
-                                                            </li>
-                                                        );
-                                                    })
-                                            ) : (
-                                                <li className="text-gray-500">
-                                                    Belum ada siapa-siapa.
-                                                </li>
-                                            )}
-                                        </ul>
+                                                                    </li>
+                                                                );
+                                                            }
+                                                        )
+                                                ) : (
+                                                    <li className="text-gray-500">
+                                                        Belum ada siapa-siapa.
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        </div>
+                                        <div className="mt-4 text-center relative">
+                                            <button
+                                                onClick={handleNextClick}
+                                                onMouseEnter={() =>
+                                                    setShowTooltip(true)
+                                                }
+                                                onMouseLeave={() =>
+                                                    setShowTooltip(false)
+                                                }
+                                                className={`bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                                                    isButtonDisabled
+                                                        ? "opacity-50"
+                                                        : ""
+                                                }`}
+                                            >
+                                                Next
+                                            </button>
+                                            {showTooltip &&
+                                                isButtonDisabled && (
+                                                    <div className="absolute -top-14 left-1/2 transform -translate-x-1/2 mt-2 p-2 bg-gray-700 text-white text-sm rounded">
+                                                        Sisa waktu:{" "}
+                                                        {remainingTime} detik
+                                                    </div>
+                                                )}
+                                        </div>
                                     </div>
                                 ))
                             ) : (

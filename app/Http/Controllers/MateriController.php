@@ -387,4 +387,19 @@ class MateriController extends Controller
             return response()->json(['message' => 'Terjadi kesalahan saat menghapus relation'], 500);
         }
     }
+
+    public function toStudiKasus()
+    {
+        $materis = Materi::first();
+
+        // Check if the materi has studi kasus enabled
+        if ($materis->studikasus) {
+            // Redirect to studi kasus page
+            return redirect()->route('materi.studiKasus', ['materi' => $materis->id]);
+        } else {
+            // If studi kasus is not enabled, redirect to the materi page
+            return redirect()->route('materi.show', ['materi' => $materis->id]);
+        }
+
+    }
 }

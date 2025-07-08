@@ -12,7 +12,7 @@ function StudentScreenShare({ auth, test }) {
     const peerRef = useRef(null);
     const [isSharing, setIsSharing] = useState(false);
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-    const [remainingTime, setRemainingTime] = useState(60);
+    const [remainingTime, setRemainingTime] = useState(5);
     const { startActivity, stopActivity, currentPath, changePath } = useActivity();
 
     useEffect(() => {
@@ -155,7 +155,7 @@ function StudentScreenShare({ auth, test }) {
         }
         try {
             await axios.post("/update-progress", { progress: 2 });
-            router.visit("/test"); // Adjust this route as needed
+            router.visit("/kelompok"); // Adjust this route as needed
         } catch (error) {
             console.error("Error updating progress:", error);
         }

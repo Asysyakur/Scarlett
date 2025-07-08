@@ -46,7 +46,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             (item.name === "Materi" &&
                                                 (!user?.progress_user ||
                                                     user.progress_user
-                                                        .progress < 2)) ||
+                                                        .progress < 3)) ||
                                             (item.name === "Kelompok" &&
                                                 (!user?.progress_user ||
                                                     user.progress_user
@@ -54,7 +54,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             (item.name === "Diagram" &&
                                                 (!user?.progress_user ||
                                                     user.progress_user
-                                                        .progress < 3)));
+                                                        .progress < 4)));
                                     return (
                                         <NavLink
                                             key={index}
