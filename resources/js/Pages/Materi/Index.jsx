@@ -474,7 +474,7 @@ export default function Index({ materis: initialMateri, auth }) {
                     {materis.map((materi) => (
                         <div key={materi.id} className="relative">
                             <Link
-                                href={`/materi/${materi.id}`}
+                                href={`/materi/${materi.id}/studi-kasus`}
                                 className="transform flex flex-col md:mx-24 mx-6 transition-all hover:scale-105 bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-100 hover:shadow-xl"
                             >
                                 <img

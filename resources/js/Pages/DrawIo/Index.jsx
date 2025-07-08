@@ -1,6 +1,6 @@
 import { useActivity } from "@/Contexts/ActivityContext";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import React, { use, useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -35,6 +35,10 @@ function DrawioEmbed({
     const [selectedErdUser, setSelectedErdUser] = useState(null);
     const [pembagianTugas, setPembagianTugas] = useState(null);
     const [selectedGroup, setSelectedGroup] = useState(null);
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+    const [remainingTime, setRemainingTime] = useState(5);
+    const [showTooltip, setShowTooltip] = useState(false);
+    const [disableTab, setDisableTab] = useState(true);
 
     useEffect(() => {
         const handleVisibilityChange = async () => {
@@ -49,6 +53,17 @@ function DrawioEmbed({
         startActivity();
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        const timer = setInterval(() => {
+            setRemainingTime((prevTime) => {
+                if (prevTime <= 1) {
+                    clearInterval(timer);
+                    setIsButtonDisabled(false);
+                    return 0;
+                }
+                return prevTime - 1;
+            });
+        }, 1000);
 
         return () => {
             document.removeEventListener(
@@ -206,11 +221,15 @@ function DrawioEmbed({
             );
         }
     };
+
     return (
         <AuthenticatedLayout header={<>Buat Diagram</>}>
             <Head title="Test" />
 
             <div className="max-w-7xl mx-auto p-6">
+                <h2 className="text-2xl font-semibold text-red-700 mb-4">
+                    Step Open Inquiry : Designing Experiments
+                </h2>
                 {groups.length === 0 ? (
                     // Show message if no groups are available
                     <div className="text-center text-xl text-red-500">
@@ -251,6 +270,7 @@ function DrawioEmbed({
                                         ? "bg-amber-500 text-white"
                                         : "bg-gray-200 text-gray-700"
                                 }`}
+                                disabled={disableTab}
                             >
                                 Diagram Kelompok{" "}
                                 <span className="font-bold">
@@ -355,74 +375,116 @@ function DrawioEmbed({
                         )}
 
                         {activeTab === "diagramAnggota" && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {selectedGroup &&
-                                    uniqueErdUserAll
-                                        .filter((erdUser) =>
-                                            selectedGroup.users.some(
-                                                (user) =>
-                                                    user.id === erdUser.user_id
-                                            )
-                                        )
-                                        .map((erdUser) => (
-                                            <div
-                                                key={erdUser.user_id}
-                                                className="bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-50 hover:shadow-xl cursor-pointer"
-                                                onClick={() =>
-                                                    openModal(
-                                                        `storage/${erdUser.screenshoot}`,
-                                                        erdUser.user_id,
-                                                        erdUser.id
-                                                    )
-                                                }
-                                            >
-                                                <div className="text-lg font-semibold text-gray-800 mb-4">
-                                                    {selectedGroup.users.find(
-                                                        (user) =>
-                                                            user.id ===
-                                                            erdUser.user_id
-                                                    )?.name ||
-                                                        "Nama tidak ditemukan"}
-                                                </div>
-                                                <div className="flex justify-center items-center w-full h-[30vh] bg-gray-100">
-                                                    <img
-                                                        src={`storage/${erdUser.screenshoot}`}
-                                                        alt={`Screenshot of ${erdUser.id}`}
-                                                        className="w-full object-contain"
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                {uniqueErdUser.map((erdUser) => (
-                                    <div
-                                        key={erdUser.user_id}
-                                        className="bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-50 hover:shadow-xl cursor-pointer"
-                                        onClick={() =>
-                                            openModal(
-                                                `storage/${erdUser.screenshoot}`,
-                                                erdUser.user_id,
-                                                erdUser.id
-                                            )
-                                        }
-                                    >
-                                        <div className="text-lg font-semibold text-gray-800 mb-4">
-                                            {
-                                                group.users.find(
+                            <div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {selectedGroup &&
+                                        uniqueErdUserAll
+                                            .filter((erdUser) =>
+                                                selectedGroup.users.some(
                                                     (user) =>
                                                         user.id ===
                                                         erdUser.user_id
-                                                ).name
+                                                )
+                                            )
+                                            .map((erdUser) => (
+                                                <div
+                                                    key={erdUser.user_id}
+                                                    className="bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-50 hover:shadow-xl cursor-pointer"
+                                                    onClick={() =>
+                                                        openModal(
+                                                            `storage/${erdUser.screenshoot}`,
+                                                            erdUser.user_id,
+                                                            erdUser.id
+                                                        )
+                                                    }
+                                                >
+                                                    <div className="text-lg font-semibold text-gray-800 mb-4">
+                                                        {selectedGroup.users.find(
+                                                            (user) =>
+                                                                user.id ===
+                                                                erdUser.user_id
+                                                        )?.name ||
+                                                            "Nama tidak ditemukan"}
+                                                    </div>
+                                                    <div className="flex justify-center items-center w-full h-[30vh] bg-gray-100">
+                                                        <img
+                                                            src={`storage/${erdUser.screenshoot}`}
+                                                            alt={`Screenshot of ${erdUser.id}`}
+                                                            className="w-full object-contain"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    {uniqueErdUser.map((erdUser) => (
+                                        <div
+                                            key={erdUser.user_id}
+                                            className="bg-white shadow-lg rounded-lg p-6 border border-amber-300 hover:bg-amber-50 hover:shadow-xl cursor-pointer"
+                                            onClick={() =>
+                                                openModal(
+                                                    `storage/${erdUser.screenshoot}`,
+                                                    erdUser.user_id,
+                                                    erdUser.id
+                                                )
                                             }
+                                        >
+                                            <div className="text-lg font-semibold text-gray-800 mb-4">
+                                                {
+                                                    group.users.find(
+                                                        (user) =>
+                                                            user.id ===
+                                                            erdUser.user_id
+                                                    ).name
+                                                }
+                                            </div>
+                                            <div className="flex justify-center items-center w-full h-[30vh] bg-gray-100">
+                                                <img
+                                                    src={`storage/${erdUser.screenshoot}`}
+                                                    alt={`Screenshot of ${erdUser.id}`}
+                                                    className="w-full"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex justify-center items-center w-full h-[30vh] bg-gray-100">
-                                            <img
-                                                src={`storage/${erdUser.screenshoot}`}
-                                                alt={`Screenshot of ${erdUser.id}`}
-                                                className="w-full"
-                                            />
-                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex justify-center">
+                                    <div className="mt-6 flex justify-center relative">
+                                        {isButtonDisabled ? (
+                                            <button
+                                                className={`bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                                                    isButtonDisabled
+                                                        ? "opacity-50"
+                                                        : ""
+                                                }`}
+                                                onMouseEnter={() =>
+                                                    setShowTooltip(true)
+                                                }
+                                                onMouseLeave={() =>
+                                                    setShowTooltip(false)
+                                                }
+                                            >
+                                                Selanjutnya
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => {
+                                                    setDisableTab(false);
+                                                    setActiveTab(
+                                                        "diagramKelompok"
+                                                    );
+                                                }}
+                                                className="bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                                            >
+                                                Selanjutnya
+                                            </button>
+                                        )}
+                                        {showTooltip && isButtonDisabled && (
+                                            <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 mt-2 p-2 bg-gray-700 text-white text-sm rounded">
+                                                Sisa waktu: {remainingTime}{" "}
+                                                detik
+                                            </div>
+                                        )}
                                     </div>
-                                ))}
+                                </div>
                             </div>
                         )}
 

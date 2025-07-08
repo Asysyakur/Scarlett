@@ -51,7 +51,9 @@ const GameBoard = ({
     const [newRelations, setNewRelations] = useState([
         { from: "", to: "", type: "", id: "" }, // Initialize with empty values for each field
     ]);
-
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+    const [remainingTime, setRemainingTime] = useState(5);
+    const [showTooltip, setShowTooltip] = useState(false);
     const { startActivity, stopActivity, currentPath, changePath } =
         useActivity();
 
@@ -68,6 +70,17 @@ const GameBoard = ({
         startActivity();
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        const timer = setInterval(() => {
+            setRemainingTime((prevTime) => {
+                if (prevTime <= 1) {
+                    clearInterval(timer);
+                    setIsButtonDisabled(false);
+                    return 0;
+                }
+                return prevTime - 1;
+            });
+        }, 1000);
 
         return () => {
             document.removeEventListener(
@@ -259,6 +272,20 @@ const GameBoard = ({
                 console.error("Error saat mengatur permintaan:", error.message);
                 alert(`Kesalahan: ${error.message}`);
             }
+        }
+    };
+
+    const handleNextClick = async () => {
+        if (isButtonDisabled) {
+            return;
+        }
+        try {
+            await axios.post(`/update-progress`, {
+                progress: 4,
+            });
+            router.get(route("diagram"));
+        } catch (error) { 
+            console.error("Error updating progress:", error);
         }
     };
 
@@ -898,14 +925,7 @@ const GameBoard = ({
                         </div>
                     )}
                     <div className="w-full mb-4 justify-between flex">
-                        <div className="mb-4">
-                            <Link
-                                href={route("materi.index")} // Adjust this route as needed
-                                className="text-amber-500 hover:text-amber-700 font-semibold"
-                            >
-                                Kembali ke Materi
-                            </Link>
-                        </div>
+                        <div className="mb-4"></div>
                         <div className="flex gap-4 items-center">
                             <button
                                 onClick={() => handleSave()}
@@ -913,12 +933,6 @@ const GameBoard = ({
                             >
                                 Simpan
                             </button>
-                            <Link
-                                href={`/materi/${materi.id}/studi-kasus`} // Adjust this route as needed
-                                className="text-white hover:bg-amber-700 bg-amber-500 transition-all ease-in-out duration-200 font-semibold px-4 py-2 rounded"
-                            >
-                                Studi Kasus
-                            </Link>
                         </div>
                     </div>
                     <div className="flex flex-col gap-6">
@@ -1271,6 +1285,35 @@ const GameBoard = ({
                         <p className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                             Belum dinilai
                         </p>
+                    )}
+                </div>
+
+                <div className="mt-6 flex justify-center relative">
+                    {isButtonDisabled ? (
+                        <button
+                            className={`bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                                isButtonDisabled ? "opacity-50" : ""
+                            }`}
+                            onMouseEnter={() => setShowTooltip(true)}
+                            onMouseLeave={() => setShowTooltip(false)}
+                        >
+                            Selanjutnya
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleNextClick}
+                            onMouseEnter={() => setShowTooltip(true)}
+                            onMouseLeave={() => setShowTooltip(false)}
+                            disabled={isButtonDisabled}
+                            className="bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        >
+                            Selanjutnya
+                        </button>
+                    )}
+                    {showTooltip && isButtonDisabled && (
+                        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 mt-2 p-2 bg-gray-700 text-white text-sm rounded">
+                            Sisa waktu: {remainingTime} detik
+                        </div>
                     )}
                 </div>
             </div>

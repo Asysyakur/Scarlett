@@ -93,10 +93,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/materi/drag-and-drop/save', [MateriController::class, 'dndSave'])->name('materi.dragAndDrop.save');
     Route::post('/upload-screenshot', [ActivityController::class, 'uploadScreenshot'])->name('activity.uploadScreenshot');
     Route::post('/diagram/{id}/task', [GroupsController::class, 'storeTask'])->name('diagram.storeTask');
+    Route::get('/materi-to-studi-kasus', [MateriController::class, 'toStudiKasus'])->name('materi.toStudiKasus');
 
     Route::get('/test', [TestController::class, 'index'])->name('test.index');
     Route::get('/test/{test}', [TestController::class, 'show'])->name('test.show');
     Route::post('/test/capture', [TestController::class, 'capture'])->name('test.capture');
+    Route::get('/test-to-pretest', [TestController::class, 'pretest'])->name('test.pre');
 
     Route::post('/activities/start', [ActivityController::class, 'startActivity']);
     Route::post('/activities/stop', [ActivityController::class, 'stopActivity']);

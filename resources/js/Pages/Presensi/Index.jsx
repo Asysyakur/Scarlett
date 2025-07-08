@@ -7,7 +7,7 @@ import axios from "axios";
 function Presensi({ data }) {
     const { startActivity, stopActivity, currentPath, changePath } = useActivity();
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-    const [remainingTime, setRemainingTime] = useState(30);
+    const [remainingTime, setRemainingTime] = useState(5);
     const [showTooltip, setShowTooltip] = useState(false);
 
     useEffect(() => {
@@ -50,7 +50,7 @@ function Presensi({ data }) {
             await axios.post(`/update-progress`, {
                 progress: 1,
             });
-            router.visit("/dashboard"); // Adjust this route as needed
+            router.get(route("test.pre"));
         } catch (error) {
             console.error("Error updating progress:", error);
         }

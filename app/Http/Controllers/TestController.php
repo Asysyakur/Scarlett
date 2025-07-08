@@ -94,4 +94,26 @@ class TestController extends Controller
 
         return response()->json(['message' => 'Screen share stopped']);
     }
+
+    public function pretest()
+    {   
+        // Cari test dengan nama 'pretest'
+        $test = Test::where('name', 'Pretest')->first();
+        
+        // Jika test ditemukan, arahkan ke metode show dengan ID tersebut
+        if ($test) {
+            return $this->show($test);
+        }
+
+        // Jika tidak ditemukan, ambil test pertama dari tabel
+        $firstTest = Test::first();
+
+        // Jika test pertama ditemukan, arahkan ke metode show
+        if ($firstTest) {
+            return $this->show($firstTest);
+        }
+        
+        // Jika tabel test kosong, kembalikan respons error
+        return response()->json(['message' => 'Tidak ada test yang tersedia'], 404);
+    }
 }
